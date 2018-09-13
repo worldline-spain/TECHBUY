@@ -1,0 +1,23 @@
+{
+  "name": "truffle-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle test",
+    "console": "truffle console",
+    "wclean": "rd /s /q build",
+    "development": "truffle migrate",
+    "alastria": "truffle migrate --network alastria"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^6.0.0",
+    "truffle": "^4.1.14",
+    "web3": "^0.20.1"
+  }
+}
