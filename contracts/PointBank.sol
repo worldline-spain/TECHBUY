@@ -22,10 +22,6 @@ contract PointBank is ERC20, Ownable {
 
   string name;
 
-  constructor(string _name) public {
-    name = _name;
-  }
-
   /**
   * @dev Total number of tokens in existence
   */
@@ -177,8 +173,8 @@ contract PointBank is ERC20, Ownable {
     emit Transfer(address(0), _account, _amount);
   }
 
-  // @dev PointBank.at("").then(function(instance){return instance.giveCoins('', 100)});
-  function giveCoins(address _to, uint256 _amount) public onlyOwner {
+  // @dev PointBank.at("").then(function(instance){return instance.givePoints('', 100)});
+  function givePoints(address _to, uint256 _amount) public onlyOwner {
     _mint(_to, _amount);
   }
 

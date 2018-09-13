@@ -1,5 +1,8 @@
 pragma solidity ^0.4.22;
 
+import "./PointBank.sol";
+import "./Auction.sol";
+
 contract Game {
     
     enum Option {
@@ -16,18 +19,22 @@ contract Game {
         uint percentage;
     }
 
-    uint count = 0;
-    Match currentMatch;
+    address pointBankAddress;
+    address auctionAddress;
+    uint percentage;
 
-    function chooseOption(Option option) public {
-        currentMatch.options[msg.sender] = option;
-        count++;
+    function startGame(uint _percentage) public {
+        pointBankAddress = address(new PointBank());
+        auctionAddress = address(new Auction(pointBankAddress));
+        percentage = _percentage;
     }
 
-    function startGame(address _challenged, uint _percentage) public {
-        currentMatch.challenging = msg.sender;
-        currentMatch.challenged = _challenged;
-        currentMatch.percentage = _percentage;
+    function chooseOption(address _challenged, Option option) public {
+        // currentMatch.options[msg.sender] = option;
+        // count++;
+        // currentMatch.challenging = msg.sender;
+        // currentMatch.challenged = _challenged;
+        // currentMatch.percentage = _percentage;
     }
 
 }
