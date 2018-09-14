@@ -7,17 +7,22 @@ contract Game {
     
     enum Option {
         Rock,
+        Spock,
         Paper,
-        Scissors,
         Lizard, 
-        Spock
+        Scissors
     }
 
     struct Match {
-        mapping (address => Option) options;
+        uint challengingChoice;
         address challenging;
         address challenged;
         address winner;
+    }
+
+    modifier validOption(uint _value) {
+        require(uint(Option.Spock) >= _value);
+        _;
     }
 
     Match[] matches;
@@ -31,43 +36,43 @@ contract Game {
         percentage = _percentage;
     }
 
-    // @dev Game.deployed().then(function(instance){return instance.challenge('0x54F2208866d60768bC4FB5C2f8e0F18f90b60Af7', 0)});
-    function challenge(address _challenged, Option _option) public returns(uint){
-        Match memory m = Match({challenging: msg.sender, challenged: _challenged, winner: msg.sender});
-        uint id = matches.push(m);
-        matches[id].options[msg.sender] = _option;
+    // @dev Game.deployed().then(function(instance){return instance.challenge('', 0)});
+    function challenge(address _challenged, uint _option) public validOption(_option) returns(uint) {
+        Match memory m;
+        m.challenging = msg.sender;
+        m.challenged = _challenged;
+        m.challengingChoice = _option;
+        uint id = matches.push(m); // solidity converts here the memory variable into storage, so we can access the mapping inside.
         return id;
     }
 
-    function challengeAccepted(uint _match_id, Option _option) public {
-        Match m = matches[_match_id];
-        m.options[m.challenged] = _option;
-        uint challenging = name_to_number(m.options[m.challenged]);
-        uint challenged = name_to_number(m.options[m.challenging]);
-        if (challenging == challenged) {
-            //play again
-        }
-        else if ((challenging - challenged)%5 < 3) {
+    function challengeAccepted(uint _matchId, uint _option) public validOption(_option) {
+        Match storage m = matches[_matchId];
+        uint challengingChoice = m.challengingChoice;
+        if (challengingChoice == _option) {
+            // play again. EVENT
+        } else if ((challengingChoice - _option)%5 < 3) {
             m.winner = m.challenging;
-        }
-        else {
+        } else {
             m.winner = m.challenged;
         }
+        delete matches[_matchId];
+        // EVENT
     }
 
-    function name_to_number(Option _name) internal pure returns(uint){
-        if (_name == Option.Rock)
-            return 0;
-        else if (_name == Option.Spock)
-            return 1;
-        else if (_name == Option.Paper)
-            return 2;
-        else if (_name == Option.Lizard)
-            return 3;
-        else if (_name == Option.Scissors)
-            return 4;
-        else 
-            return 5;
-    }
+    // function _nameToNumber(Option _name) internal pure returns(uint) {
+    //     if (_name == Option.Rock)
+    //         return 0;
+    //     else if (_name == Option.Spock)
+    //         return 1;
+    //     else if (_name == Option.Paper)
+    //         return 2;
+    //     else if (_name == Option.Lizard)
+    //         return 3;
+    //     else if (_name == Option.Scissors)
+    //         return 4;
+    //     else 
+    //         return 5;
+    // }
 
 }
