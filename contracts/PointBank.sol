@@ -20,7 +20,16 @@ contract PointBank is ERC20, Ownable {
 
   uint256 private totalSupply_;
 
-  string name;
+  address auction;
+
+  modifier onlyAuction {
+    require(msg.sender == auction);
+    _;
+  }
+
+  function setAuction(address _auction) external {
+    auction = _auction;
+  }
 
   /**
   * @dev Total number of tokens in existence
@@ -109,6 +118,14 @@ contract PointBank is ERC20, Ownable {
     allowed_[_from][msg.sender] = allowed_[_from][msg.sender].sub(_value);
     emit Transfer(_from, _to, _value);
     return true;
+  }
+
+  function takePoints(address _from, uint256 _amount) external onlyAuction {
+    require(_amount <= balances_[_from]);
+
+    balances_[_from] = balances_[_from].sub(_amount);
+    balances_[msg.sender] = balances_[msg.sender].add(_amount);
+    emit Transfer(_from, msg.sender, _amount);
   }
 
   /**
