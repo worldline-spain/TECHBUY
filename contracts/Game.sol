@@ -60,19 +60,13 @@ contract Game {
         // EVENT
     }
 
-    // function _nameToNumber(Option _name) internal pure returns(uint) {
-    //     if (_name == Option.Rock)
-    //         return 0;
-    //     else if (_name == Option.Spock)
-    //         return 1;
-    //     else if (_name == Option.Paper)
-    //         return 2;
-    //     else if (_name == Option.Lizard)
-    //         return 3;
-    //     else if (_name == Option.Scissors)
-    //         return 4;
-    //     else 
-    //         return 5;
-    // }
+    // @dev Game.deployed().then(function(instance){return instance.getPointBankAddress()});
+    function getPointBankAddress() public view returns(address) {
+        return pointBankAddress;
+    }
+
+    function getAuctionAddress() public view returns(address) {
+        return auctionAddress;
+    }
 
 }
