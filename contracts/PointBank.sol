@@ -95,6 +95,23 @@ contract PointBank is ERC20, Ownable {
     return true;
   }
 
+  function transferFromGame(
+    address _from,
+    address _to,
+    uint256 _value
+    ) 
+    public /* onlyOwner */ 
+    returns (bool)
+    {
+    require(_value <= balances_[_from]);
+    require(_to != address(0));
+
+    balances_[_from] = balances_[_from].sub(_value);
+    balances_[_to] = balances_[_to].add(_value);
+    emit Transfer(_from, _to, _value);
+    return true;
+  }
+
   /**
    * @dev Transfer tokens from one address to another
    * @param _from address The address which you want to send tokens from
@@ -190,8 +207,8 @@ contract PointBank is ERC20, Ownable {
     emit Transfer(address(0), _account, _amount);
   }
 
-  // @dev PointBank.at("").then(function(instance){return instance.givePoints('', 100)});
-  function givePoints(address _to, uint256 _amount) public onlyOwner {
+  // @dev PointBank.at("0x8360eadd1a7c0d82e7d97b3e5af22805580e4f27").then(function(instance){return instance.givePoints('', 1000)});
+  function givePoints(address _to, uint256 _amount) public /* onlyOwner */ {
     _mint(_to, _amount);
   }
 

@@ -13,51 +13,55 @@ contract Game {
         Scissors
     }
 
-    struct Match {
-        uint challengingChoice;
-        address challenging;
-        address challenged;
-        address winner;
+    struct Profile {
+        string name;
+        address addr;
+        int defaultOption;
     }
 
     modifier validOption(uint _value) {
-        require(uint(Option.Spock) >= _value);
+        require(uint(Option.Scissors) >= _value);
         _;
     }
 
-    Match[] matches;
+    Profile[] players;
     address pointBankAddress;
     address auctionAddress;
     uint percentage;
 
+    // @dev Game.deployed().then(function(instance){return instance.startGame(10)});
     function startGame(uint _percentage) public {
         pointBankAddress = address(new PointBank());
         auctionAddress = address(new Auction(pointBankAddress));
         percentage = _percentage;
     }
 
-    // @dev Game.deployed().then(function(instance){return instance.challenge('', 0)});
-    function challenge(address _challenged, uint _option) public validOption(_option) returns(uint) {
-        Match memory m;
-        m.challenging = msg.sender;
-        m.challenged = _challenged;
-        m.challengingChoice = _option;
-        uint id = matches.push(m); // solidity converts here the memory variable into storage, so we can access the mapping inside.
-        return id;
+    // @dev Game.deployed().then(function(instance){return instance.createProfile("raul", 0)});
+    function createProfile(string _name, int _option) public {
+        //check doesn't exist another Profile with the same address
+        players.push(Profile(_name, msg.sender, _option));
+        PointBank(pointBankAddress).givePoints(msg.sender, 1000);
     }
 
-    function challengeAccepted(uint _matchId, uint _option) public validOption(_option) {
-        Match storage m = matches[_matchId];
-        uint challengingChoice = m.challengingChoice;
-        if (challengingChoice == _option) {
-            // play again. EVENT
-        } else if ((challengingChoice - _option)%5 < 3) {
-            m.winner = m.challenging;
-        } else {
-            m.winner = m.challenged;
+    // @dev Game.deployed().then(function(instance){return instance.challenge('', 0)});
+    function challenge(address _challenged, int _option) public /* validOption(_option) */ returns(uint) {
+        //require(0 < PointBank(pointBankAddress).balanceOf(msg.sender));
+        //require(0 < PointBank(pointBankAddress).balanceOf(_challenged));
+        for (uint i = 0; i < players.length; ++i) {
+            if (players[i].addr == _challenged) {
+                //return 3;
+                if ((_option - players[i].defaultOption) % 5 < 3) {
+                    PointBank(pointBankAddress).transferFromGame(_challenged, msg.sender, 10);
+                    return 0; //Has won the challenger
+                } else if (_option == players[i].defaultOption) {
+                    return 1; //DRAW
+                } else {
+                    PointBank(pointBankAddress).transferFromGame(msg.sender, _challenged, 10);
+                    return 2; //Has won the challenged
+                }
+            }
+
         }
-        delete matches[_matchId];
-        // EVENT
     }
 
     // @dev Game.deployed().then(function(instance){return instance.getPointBankAddress()});
