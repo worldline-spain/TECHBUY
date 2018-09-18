@@ -2,7 +2,8 @@ pragma solidity ^0.4.22;
 
 import "./ERC20.sol";
 import "./SafeMath.sol";
-import "./Ownable.sol";
+import "./Ownable.sol"; // Source from github
+import "./Pausable.sol"; //Source from github
 
 /**
  * @title Standard ERC20 token
@@ -11,7 +12,7 @@ import "./Ownable.sol";
  * https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
  * Originally based on code by FirstBlood: https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol
  */
-contract PointBank is ERC20, Ownable {
+contract PointBank is ERC20, Ownable, Pausable {
   using SafeMath for uint256;
 
   mapping (address => uint256) private balances_;

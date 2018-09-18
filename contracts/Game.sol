@@ -2,8 +2,13 @@ pragma solidity ^0.4.22;
 
 import "./PointBank.sol";
 import "./Auction.sol";
+import "./Pausable.sol"; //Source from github
 
-contract Game {
+contract Game is Pausable {
+
+    event ProfileCreated(string name, address addr);
+    event Challenge(address challenger, address challenged, int option);
+    event ChallengeResult(int challengedOption, address winner, bool draw);
     
     enum Option {
         Rock,
@@ -19,58 +24,62 @@ contract Game {
         int defaultOption;
     }
 
-    modifier validOption(uint _value) {
-        require(uint(Option.Scissors) >= _value);
+    modifier validOption(int _value) {
+        require(int(Option.Scissors) >= _value);
         _;
     }
 
-    Profile[] players;
-    address pointBankAddress;
-    address auctionAddress;
-    uint percentage;
+    Profile[] private players;
+    PointBank public pointBank;
+    Auction public auction;
+    uint private percentage;
 
-    // @dev Game.deployed().then(function(instance){return instance.startGame(10)});
-    function startGame(uint _percentage) public {
-        pointBankAddress = address(new PointBank());
-        auctionAddress = address(new Auction(pointBankAddress));
+    constructor() public {
+        pointBank = new PointBank();
+        auction = new Auction(address(pointBank));
+        pauseGame();
+    }
+
+    // @dev Game.deployed().then(function(instance){return instance.setUp(10)});
+    function setUp(uint _percentage) public whenPaused {
         percentage = _percentage;
     }
 
-    // @dev Game.deployed().then(function(instance){return instance.createProfile("raul", 0)});
-    function createProfile(string _name, int _option) public {
+    // @dev Game.deployed().then(function(instance){return instance.createProfile("Raul", 0)});
+    function createProfile(string _name, int _option) public whenNotPaused {
         //check doesn't exist another Profile with the same address
         players.push(Profile(_name, msg.sender, _option));
-        PointBank(pointBankAddress).givePoints(msg.sender, 1000);
+        emit ProfileCreated(_name, msg.sender);
+        pointBank.givePoints(msg.sender, 1000); //temp
     }
 
     // @dev Game.deployed().then(function(instance){return instance.challenge('', 0)});
-    function challenge(address _challenged, int _option) public /* validOption(_option) */ returns(uint) {
-        //require(0 < PointBank(pointBankAddress).balanceOf(msg.sender));
-        //require(0 < PointBank(pointBankAddress).balanceOf(_challenged));
+    function challenge(address _challenged, int _option) public validOption(_option) whenNotPaused returns(uint) {
         for (uint i = 0; i < players.length; ++i) {
             if (players[i].addr == _challenged) {
-                //return 3;
-                if ((_option - players[i].defaultOption) % 5 < 3) {
-                    PointBank(pointBankAddress).transferFromGame(_challenged, msg.sender, 10);
-                    return 0; //Has won the challenger
-                } else if (_option == players[i].defaultOption) {
-                    return 1; //DRAW
+                emit Challenge(msg.sender, _challenged, _option);
+                if (_option == players[i].defaultOption) {
+                    emit ChallengeResult(players[i].defaultOption, 0, true); // DRAW
+                } else if ((_option - players[i].defaultOption) % 5 < 3) {
+                    pointBank.transferFromGame(msg.sender, _challenged, 10);
+                    emit ChallengeResult(players[i].defaultOption, _challenged, false); //Has won the challenged
                 } else {
-                    PointBank(pointBankAddress).transferFromGame(msg.sender, _challenged, 10);
-                    return 2; //Has won the challenged
+                    pointBank.transferFromGame(_challenged, msg.sender, 10);
+                    emit ChallengeResult(players[i].defaultOption, msg.sender, false); //Has won the challenger
                 }
             }
-
         }
     }
 
-    // @dev Game.deployed().then(function(instance){return instance.getPointBankAddress()});
-    function getPointBankAddress() public view returns(address) {
-        return pointBankAddress;
+    function pauseGame() public whenNotPaused {
+        pause();
+        pointBank.pause();
+        auction.pause();
     }
 
-    function getAuctionAddress() public view returns(address) {
-        return auctionAddress;
+    function resumeGame() public whenPaused {
+        unpause();
+        pointBank.unpause();
+        auction.unpause();
     }
-
 }
