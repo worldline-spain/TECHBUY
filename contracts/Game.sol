@@ -54,7 +54,9 @@ contract Game is Pausable {
 
     // @dev Game.deployed().then(function(instance){return instance.createProfile("Raul", 0)});
     function createProfile(string _name, int _option) public whenNotPaused {
-        //check doesn't exist another Profile with the same address
+        for (uint i = 0; i < addresses.length; i++) {
+            require(addresses[i] != msg.sender);
+        }
         players.push(Profile(_name, msg.sender, _option));
         addresses.push(msg.sender);
         emit ProfileCreated(_name, msg.sender);
