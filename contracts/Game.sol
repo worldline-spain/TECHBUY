@@ -2,9 +2,13 @@ pragma solidity ^0.4.22;
 
 import "./PointBank.sol";
 import "./Auction.sol";
+import "./Strings.sol";
 import "./Pausable.sol"; //Source from github
 
 contract Game is Pausable {
+
+    //@dev https://github.com/Arachnid/solidity-stringutils
+    using Strings for *;
 
     event ProfileCreated(string name, address addr);
     event Challenge(address challenger, address challenged, int option);
@@ -30,9 +34,12 @@ contract Game is Pausable {
     }
 
     Profile[] private players;
+    address[] private addresses;
     PointBank public pointBank;
     Auction public auction;
     uint private percentage;
+
+    string constant separator = "-";
 
     constructor() public {
         pointBank = new PointBank();
@@ -49,6 +56,7 @@ contract Game is Pausable {
     function createProfile(string _name, int _option) public whenNotPaused {
         //check doesn't exist another Profile with the same address
         players.push(Profile(_name, msg.sender, _option));
+        addresses.push(msg.sender);
         emit ProfileCreated(_name, msg.sender);
         pointBank.givePoints(msg.sender, 1000); //temp
     }
@@ -69,6 +77,21 @@ contract Game is Pausable {
                 }
             }
         }
+    }
+
+    function getPlayers() public view returns(address[], string) {
+        string memory names;
+        for (uint i = 0; i < players.length; ++i) {
+            string memory part;
+            if (i != 0) {
+                part = separator.toSlice().concat(players[i].name.toSlice());
+            }
+            else {
+                part = players[i].name;
+            }
+            names = names.toSlice().concat(part.toSlice());
+        }
+        return (addresses, names);
     }
 
     function pauseGame() public whenNotPaused onlyPauser {
