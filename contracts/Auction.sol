@@ -5,6 +5,8 @@ import "./Pausable.sol"; //Source from github
 
 contract Auction is Pausable {
 
+    // @dev var et; Auction.at("0xb6d45dc615c30e9c1da6210e631f5d74975ce7c4").then(function(instance){et = instance;});
+    // @dev et.bidUp(12,1).then(function(ret){console.log(ret.logs[1].args.bidAmount)});
     event Bid(address bidder, string prize, uint bidAmount);
     event NewBestBid(address bidder, string prize, uint bidAmount);
     event IgnoredBid(address bidder, string prize, uint bidAmount);

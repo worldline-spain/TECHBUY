@@ -10,6 +10,9 @@ contract Game is Pausable {
     //@dev https://github.com/Arachnid/solidity-stringutils
     using Strings for *;
 
+
+    // @dev var et; Game.deployed().then(function(instance){et = instance;});
+    // @dev et.challenge('0x34f5c9DE986bc6c26d704b8510330dfFfF9cDAc8', 0).then(function(ret){console.log(ret.logs[0].args.challenger)})
     event ProfileCreated(string name, address addr);
     event Challenge(address challenger, address challenged, int option);
     event ChallengeResult(int challengedOption, address winner, bool draw);
@@ -100,6 +103,7 @@ contract Game is Pausable {
         auction.pause();
     }
 
+    // @dev Game.deployed().then(function(instance){return instance.resumeGame()})
     function resumeGame() public whenPaused onlyPauser {
         unpause();
         pointBank.unpause();
