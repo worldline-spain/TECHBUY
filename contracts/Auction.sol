@@ -1,8 +1,13 @@
 pragma solidity ^0.4.22;
 
 import "./PointBank.sol";
+import "./Pausable.sol"; //Source from github
 
-contract Auction {
+contract Auction is Pausable {
+
+    event Bid(address bidder, string prize, uint bidAmount);
+    event NewBestBid(address bidder, string prize, uint bidAmount);
+    event IgnoredBid(address bidder, string prize, uint bidAmount);
 
     address private pointBankAddress;
 
@@ -12,7 +17,8 @@ contract Auction {
         uint bestBid;
     }
 
-    Prize[] prizes;
+    // @dev Auction.at('').then(function(instance){return instance.prizes(0)});
+    Prize[] public prizes;
 
     constructor(address _pointBankAddress) public {
         pointBankAddress = _pointBankAddress;
@@ -22,10 +28,13 @@ contract Auction {
         prizes.push(Prize({name:"Notebook", bestBidder: 0, bestBid: 0}));
     }
 
-    function bidUp(uint _amount, uint8 _prizeId) public {
+    // @dev Auction.at('').then(function(instance){return instance.bidUp(10, 1)});
+    function bidUp(uint _amount, uint8 _prizeId) public whenNotPaused {
         Prize storage prize = prizes[_prizeId];
+        emit Bid(msg.sender, prize.name, _amount);
         uint currentAmount = prize.bestBid;
         if (_amount > currentAmount) {
+            emit NewBestBid(msg.sender, prize.name, _amount);
             address currentBidder = prize.bestBidder;
             prize.bestBidder = msg.sender;
             prize.bestBid = _amount;
@@ -33,6 +42,8 @@ contract Auction {
                 _returnPoints(currentBidder, currentAmount);
             }
             _takePoints(msg.sender, _amount);
+        } else {
+            emit IgnoredBid(msg.sender, prize.name, _amount);
         }
     }
 

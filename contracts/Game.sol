@@ -41,7 +41,7 @@ contract Game is Pausable {
     }
 
     // @dev Game.deployed().then(function(instance){return instance.setUp(10)});
-    function setUp(uint _percentage) public whenPaused {
+    function setUp(uint _percentage) public whenPaused onlyPauser {
         percentage = _percentage;
     }
 
@@ -71,13 +71,13 @@ contract Game is Pausable {
         }
     }
 
-    function pauseGame() public whenNotPaused {
+    function pauseGame() public whenNotPaused onlyPauser {
         pause();
         pointBank.pause();
         auction.pause();
     }
 
-    function resumeGame() public whenPaused {
+    function resumeGame() public whenPaused onlyPauser {
         unpause();
         pointBank.unpause();
         auction.unpause();
