@@ -86,7 +86,7 @@ contract Game is Pausable, Helper {
     }
 
     // @dev Game.deployed().then(function(instance){return instance.createProfile("Raul", 0)});
-    function createProfile(string _name, int _option) public whenNotPaused restrictedName {
+    function createProfile(string _name, int _option) public whenNotPaused restrictedName(_name) {
         for (uint i = 0; i < addresses.length; i++) {
             require(addresses[i] != msg.sender);
         }
