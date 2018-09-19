@@ -45,7 +45,7 @@ contract Game is Pausable, Helper {
     PointBank public pointBank;
     Auction public auction;
     uint private percentage;
-    uint[] codes;
+    uint[] private codes;
 
     constructor() public {
         pointBank = new PointBank();
