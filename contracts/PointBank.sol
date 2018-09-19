@@ -208,8 +208,8 @@ contract PointBank is ERC20, Ownable, Pausable {
     emit Transfer(address(0), _account, _amount);
   }
 
-  // @dev PointBank.at("0x8360eadd1a7c0d82e7d97b3e5af22805580e4f27").then(function(instance){return instance.givePoints('', 1000)});
-  function givePoints(address _to, uint256 _amount) public /* onlyOwner */ {
+  // @dev PointBank.at("").then(function(instance){return instance.givePoints('', 1000)});
+  function givePoints(address _to, uint256 _amount) public onlyOwner {
     _mint(_to, _amount);
   }
 

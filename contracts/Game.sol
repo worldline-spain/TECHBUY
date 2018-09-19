@@ -2,20 +2,18 @@ pragma solidity ^0.4.22;
 
 import "./PointBank.sol";
 import "./Auction.sol";
-import "./Strings.sol";
+import "./Helper.sol";
 import "./Pausable.sol"; //Source from github
 
-contract Game is Pausable {
-
-    //@dev https://github.com/Arachnid/solidity-stringutils
-    using Strings for *;
-
+contract Game is Pausable, Helper {
 
     // @dev var et; Game.deployed().then(function(instance){et = instance;});
     // @dev et.challenge('0x34f5c9DE986bc6c26d704b8510330dfFfF9cDAc8', 0).then(function(ret){console.log(ret.logs[0].args.challenger)})
     event ProfileCreated(string name, address addr);
     event Challenge(address challenger, address challenged, int option);
     event ChallengeResult(int challengedOption, address winner, bool draw);
+    event CodeRedeemed(string playerName);
+    event InvalidCode(uint code);
     
     enum Option {
         Rock,
@@ -32,7 +30,13 @@ contract Game is Pausable {
     }
 
     modifier validOption(int _value) {
-        require(int(Option.Scissors) >= _value);
+        require(int(Option.Scissors) >= _value, "Invalid option");
+        _;
+    }
+
+    modifier onlyPlayer() {
+        string memory name = _getPlayerName(msg.sender);
+        require(bytes(name).length > 0, "User is not a player");
         _;
     }
 
@@ -41,8 +45,7 @@ contract Game is Pausable {
     PointBank public pointBank;
     Auction public auction;
     uint private percentage;
-
-    string constant separator = "-";
+    uint[] codes;
 
     constructor() public {
         pointBank = new PointBank();
@@ -50,20 +53,46 @@ contract Game is Pausable {
         pauseGame();
     }
 
-    // @dev Game.deployed().then(function(instance){return instance.setUp(10)});
-    function setUp(uint _percentage) public whenPaused onlyPauser {
+    function _getPlayerName(address userAddress) internal returns(string) {
+        for (uint i = 0; i < addresses.length; i++) {
+            if (addresses[i] == msg.sender) {
+                return players[i].name;
+            }
+        }
+    }
+
+    // @dev Game.deployed().then(function(instance){return instance.setPercentage(10)});
+    function setPercentage(uint _percentage) public whenPaused onlyPauser {
         percentage = _percentage;
     }
 
+    // @dev Game.deployed().then(function(instance){return instance.addCode(777)});
+    function addCode(uint _code) public whenPaused onlyPauser {
+        codes.push(_code);
+    }
+
+    // @dev Game.deployed().then(function(instance){return instance.checkCode(777)});
+    function checkCode(uint _code) public whenNotPaused onlyPlayer returns(bool) {
+        string memory playerName = _getPlayerName(msg.sender);
+        for (uint i = 0; i < codes.length; i++) {
+            if (codes[i] == _code) {
+                pointBank.givePoints(msg.sender, 100);
+                emit CodeRedeemed(playerName);
+                return true;
+            }
+        }
+        emit InvalidCode(_code);
+        return false;
+    }
+
     // @dev Game.deployed().then(function(instance){return instance.createProfile("Raul", 0)});
-    function createProfile(string _name, int _option) public whenNotPaused {
+    function createProfile(string _name, int _option) public whenNotPaused restrictedName {
         for (uint i = 0; i < addresses.length; i++) {
             require(addresses[i] != msg.sender);
         }
         players.push(Profile(_name, msg.sender, _option));
         addresses.push(msg.sender);
         emit ProfileCreated(_name, msg.sender);
-        pointBank.givePoints(msg.sender, 1000); //temp
     }
 
     // @dev Game.deployed().then(function(instance){return instance.challenge('', 0)});
