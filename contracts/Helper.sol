@@ -10,6 +10,7 @@ contract Helper {
     string constant separator = "-";
 
     modifier restrictedName(string _name) {
+        require(bytes(_name).length > 0);
         require(_name.toSlice().find(separator.toSlice()).len() == 0);
         _;
     }

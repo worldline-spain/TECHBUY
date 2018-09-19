@@ -53,9 +53,9 @@ contract Game is Pausable, Helper {
         pauseGame();
     }
 
-    function _getPlayerName(address userAddress) internal returns(string) {
+    function _getPlayerName(address _userAddress) internal returns(string) {
         for (uint i = 0; i < addresses.length; i++) {
-            if (addresses[i] == msg.sender) {
+            if (addresses[i] == _userAddress) {
                 return players[i].name;
             }
         }
