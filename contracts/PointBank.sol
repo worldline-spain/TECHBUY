@@ -78,6 +78,8 @@ contract PointBank is ERC20, Ownable, Pausable {
     balances_[msg.sender] = balances_[msg.sender].sub(_value);
     balances_[_to] = balances_[_to].add(_value);
     emit Transfer(msg.sender, _to, _value);
+    emit BalanceDecreased(msg.sender, balances_[msg.sender]);
+    emit BalanceIncreased(_to, balances_[_to]);
     return true;
   }
 
@@ -110,6 +112,8 @@ contract PointBank is ERC20, Ownable, Pausable {
     balances_[_from] = balances_[_from].sub(_value);
     balances_[_to] = balances_[_to].add(_value);
     emit Transfer(_from, _to, _value);
+    emit BalanceDecreased(_from, balances_[_from]);
+    emit BalanceIncreased(_to, balances_[_to]);
     return true;
   }
 
@@ -135,6 +139,8 @@ contract PointBank is ERC20, Ownable, Pausable {
     balances_[_to] = balances_[_to].add(_value);
     allowed_[_from][msg.sender] = allowed_[_from][msg.sender].sub(_value);
     emit Transfer(_from, _to, _value);
+    emit BalanceDecreased(_from, balances_[_from]);
+    emit BalanceIncreased(_to, balances_[_to]);
     return true;
   }
 
@@ -144,6 +150,7 @@ contract PointBank is ERC20, Ownable, Pausable {
     balances_[_from] = balances_[_from].sub(_amount);
     balances_[msg.sender] = balances_[msg.sender].add(_amount);
     emit Transfer(_from, msg.sender, _amount);
+    emit BalanceDecreased(_from, balances_[_from]);
   }
 
   /**

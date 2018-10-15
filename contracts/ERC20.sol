@@ -27,4 +27,15 @@ contract ERC20 {
     address indexed spender,
     uint256 value
   );
+
+  event BalanceIncreased(
+    address indexed account,
+    uint256 currentBalance
+  );
+
+  event BalanceDecreased(
+    address indexed account,
+    uint256 currentBalance
+  );
+
 }

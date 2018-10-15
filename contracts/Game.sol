@@ -9,11 +9,11 @@ contract Game is Pausable, Helper {
 
     // @dev var et; Game.deployed().then(function(instance){et = instance;});
     // @dev et.challenge('0x34f5c9DE986bc6c26d704b8510330dfFfF9cDAc8', 0).then(function(ret){console.log(ret.logs[0].args.challenger)})
-    event ProfileCreated(string name, address addr);
-    event Challenge(address challenger, address challenged, int option);
-    event ChallengeResult(int challengedOption, address winner, bool draw);
-    event CodeRedeemed(string playerName);
-    event InvalidCode(uint code);
+    event ProfileCreated(string name, address indexed addr);
+    event Challenge(address indexed challenger, address indexed challenged, int option);
+    event ChallengeResult(int challengedOption, address indexed winner, bool indexed draw);
+    event CodeRedeemed(address indexed account, string playerName, int points);
+    event InvalidCode(address indexed account, uint code);
     
     enum Option {
         Rock,
@@ -77,11 +77,11 @@ contract Game is Pausable, Helper {
         for (uint i = 0; i < codes.length; i++) {
             if (codes[i] == _code) {
                 pointBank.givePoints(msg.sender, 100);
-                emit CodeRedeemed(playerName);
+                emit CodeRedeemed(msg.sender, playerName, 100);
                 return true;
             }
         }
-        emit InvalidCode(_code);
+        emit InvalidCode(msg.sender, _code);
         return false;
     }
 
