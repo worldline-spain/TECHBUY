@@ -1,70 +1,63 @@
 pragma solidity ^0.4.22;
 
 import "./PointBank.sol";
-import "./lib/NoETH.sol";
-import "./lib/Pausable.sol"; //Source from github
+import "./lib/Utils.sol";
+import "./lib/Pausable.sol"; 
 
-// ----------------------------------------------------------------------------
-// Contract function to receive approval and execute function in one call
-//
-// Borrowed from MiniMeToken
-// ----------------------------------------------------------------------------
-contract ApproveAndCallFallBack {
-    function receiveApproval(address from, uint256 tokens, address token, bytes data) public;
-}
 
-contract Auction is Pausable, NoETH {
+contract Auction is Pausable, NoETH, ApproveAndCallFallBack {
 
-    // @dev var et; Auction.at("0xb6d45dc615c30e9c1da6210e631f5d74975ce7c4").then(function(instance){et = instance;});
-    // @dev et.bidUp(12,1).then(function(ret){console.log(ret.logs[1].args.bidAmount)});
-    event Bid(address bidder, string prize, uint bidAmount);
-    event NewBestBid(address bidder, string prize, uint bidAmount);
-    event IgnoredBid(address bidder, string prize, uint bidAmount);
+  event Bid(address bidder, string prize, uint bidAmount);
 
-    address private pointBankAddress;
+  struct Prize {
+    string name;
+    address bestBidder;
+    address pointBankAddress;
+    uint bestBid;
+    uint id;
+  }
 
-    struct Prize {
-        string name;
-        address bestBidder;
-        uint bestBid;
-    }
+  mapping (string => Prize) private prizes_;
 
-    // @dev Auction.at('').then(function(instance){return instance.prizes(0)});
-    Prize[] public prizes;
-
-    constructor(address _pointBankAddress) public {
-        pointBankAddress = _pointBankAddress;
-        PointBank(pointBankAddress).setAuction(this);
-        prizes.push(Prize({name:"prize1", bestBidder: 0, bestBid: 0}));
-        prizes.push(Prize({name:"prize2", bestBidder: 0, bestBid: 0}));
-        prizes.push(Prize({name:"prize3", bestBidder: 0, bestBid: 0}));
-    }
-
-    // @dev Auction.at('').then(function(instance){return instance.bidUp(10, 1)});
-    function bidUp(uint _amount, uint8 _prizeId) public whenNotPaused {
-        Prize storage prize = prizes[_prizeId];
-        emit Bid(msg.sender, prize.name, _amount);
-        uint currentAmount = prize.bestBid;
-        if (_amount > currentAmount) {
-            emit NewBestBid(msg.sender, prize.name, _amount);
-            address currentBidder = prize.bestBidder;
-            prize.bestBidder = msg.sender;
-            prize.bestBid = _amount;
-            if (currentBidder != 0) {
-                _returnPoints(currentBidder, currentAmount);
-            }
-            _takePoints(msg.sender, _amount);
-        } else {
-            emit IgnoredBid(msg.sender, prize.name, _amount);
-        }
-    }
-
-    function _returnPoints(address _to, uint _amount) internal {
-        PointBank(pointBankAddress).transfer(_to, _amount);
-    }
-
-    function _takePoints(address _from, uint _amount) internal {
-        PointBank(pointBankAddress).takePoints(_from, _amount);
-    }
+  constructor() public {
+    Prize memory tmPrize1 = Prize("prize1", address(0), address(0), 0, 1);
+    prizes_[tmPrize1.name] =  tmPrize1;
     
+    Prize memory tmPrize2 = Prize("prize2", address(0), address(0), 0, 2);
+    prizes_[tmPrize2.name] =  tmPrize2;
+
+    Prize memory tmPrize3 = Prize("prize3", address(0), address(0), 0, 3);
+    prizes_[tmPrize3.name] =  tmPrize3;    
+  }
+
+  function receiveApproval(address fromAddress, address tokenAddress, uint256 tokens,  string _concept) public whenNotPaused {
+    _bidUp(fromAddress, tokenAddress , tokens,  _concept);
+  }
+
+  function _bidUp(address _bidder, address _pointBankAddress, uint _amount, string _prize) private  {
+    require( prizes_[_prize].id > 0 );
+    
+    Prize storage prize = prizes_[_prize];
+    
+    require( _amount > prize.bestBid);
+      
+    if (prize.bestBidder != address(0)) {
+      _returnPoints(prize.bestBidder,prize.pointBankAddress, prize.bestBid);
+    }
+    _takePoints(prize.bestBidder,prize.pointBankAddress, prize.bestBid);
+    prize.bestBidder = _bidder;
+    prize.bestBid = _amount;
+    prize.pointBankAddress = _pointBankAddress;   
+
+    emit Bid(prize.bestBidder, prize.name, _amount);   
+  }
+
+  function _returnPoints(address _to, address  pointBankAddress, uint _amount) internal {
+    PointBank(pointBankAddress).transfer(_to, _amount);
+  }
+
+  function _takePoints(address _from, address  pointBankAddress, uint _amount) internal {
+    PointBank(pointBankAddress).transferFrom(_from, this, _amount);
+  }
+   
 }

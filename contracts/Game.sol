@@ -2,143 +2,111 @@ pragma solidity ^0.4.22;
 
 import "./PointBank.sol";
 import "./Auction.sol";
-import "./lib/NoETH.sol";
+import "./lib/Utils.sol";
 import "./lib/Helper.sol";
-import "./lib/Pausable.sol"; //Source from github
+import "./lib/Pausable.sol";
 
 contract Game is Pausable, Helper, NoETH {
 
-    // @dev var et; Game.deployed().then(function(instance){et = instance;});
-    // @dev et.challenge('0x34f5c9DE986bc6c26d704b8510330dfFfF9cDAc8', 0).then(function(ret){console.log(ret.logs[0].args.challenger)})
-    event ProfileCreated(string name, address addr);
-    event Challenge(address challenger, address challenged, int option);
-    event ChallengeResult(int challengedOption, address winner, bool draw);
-    event CodeRedeemed(string playerName);
-    event InvalidCode(uint code);
-    
-    enum Option {
-        Rock,
-        Spock,
-        Paper,
-        Lizard, 
-        Scissors
+  event ProfileCreated(string name);
+  event Challenge(string challenger, string challenged);
+  event ChallengeResult(string winner);
+  event CodeRedeemed(string playerName);
+
+  enum Option {
+    Rock,
+    Spock,
+    Paper,
+    Lizard, 
+    Scissors
+  }
+
+  struct Profile {
+    string name;
+    address addr;
+    int defaultOption;
+    uint id;
+  }
+
+  modifier validOption(int _value) {
+    require(int(Option.Scissors) >= _value, "Invalid option");
+    _;
+  }
+
+  modifier onlyPlayer() {
+    require( players_[msg.sender].id > 0 );
+    _;
+  } 
+
+  
+
+  PointBank public pointBank;
+  Auction public auction;
+  
+  mapping (address => Profile) private players_;
+  mapping (string => Profile) private playersByName_;
+  Profile[] playersArray_;
+  mapping (string => uint) private codes_;
+
+  modifier notDuplicated(string _name){
+    require(players_[msg.sender].id == 0);
+    require(playersByName_[_name].id == 0);
+    _;
+  }
+
+  constructor() public {
+    pointBank = new PointBank();
+    auction = new Auction();
+    codes_['00000']=100;
+    codes_['00001']=110;
+    codes_['00002']=120;
+    codes_['00003']=130;
+  }
+
+  function codeRedemption(string _code) public  whenNotPaused onlyPlayer {
+    require(codes_[_code]>0);
+    pointBank.transfer(msg.sender, 100);
+    emit CodeRedeemed(players_[msg.sender].name);
+  }
+
+  function userEnrollment(string _name, int _option) public whenNotPaused validOption(_option) notDuplicated(_name) {
+    Profile memory newPlayer = Profile(_name, msg.sender, _option, 1);
+    players_[newPlayer.addr]= newPlayer;
+    playersByName_[newPlayer.name] = newPlayer;
+    playersArray_.push(newPlayer);
+    emit ProfileCreated(_name);
+  }
+
+  function challenge(string _challengedName, int _option) public onlyPlayer validOption(_option) whenNotPaused  {
+    require(playersByName_[_challengedName].id > 0);
+    require(playersByName_[_challengedName].addr!=msg.sender);
+
+    emit Challenge(players_[msg.sender].name, _challengedName);
+
+    if ((_option - playersByName_[_challengedName].defaultOption) % 5 < 3) {
+      pointBank.transferFrom(msg.sender, playersByName_[_challengedName].addr, 100);
+      emit ChallengeResult( _challengedName); 
+    } else {
+      pointBank.transferFrom(playersByName_[_challengedName].addr, msg.sender, 100);
+      emit ChallengeResult( players_[msg.sender].name); 
     }
 
-    struct Profile {
-        string name;
-        address addr;
-        int defaultOption;
-    }
+  }
 
-    modifier validOption(int _value) {
-        require(int(Option.Scissors) >= _value, "Invalid option");
-        _;
-    }
+  function getRandomPlayer() public view returns(address, string) {
+    require(playersArray_.length>0);
+    return (playersArray_[0].addr, playersArray_[0].name);
+  }
 
-    modifier onlyPlayer() {
-        string memory name = _getPlayerName(msg.sender);
-        require(bytes(name).length > 0, "User is not a player");
-        _;
-    }
-
-    Profile[] private players;
-    address[] private addresses;
-    PointBank public pointBank;
-    Auction public auction;
-    uint private percentage;
-    uint[] private codes;
-
-    constructor() public {
-        pointBank = new PointBank();
-        auction = new Auction(address(pointBank));
-        pauseGame();
-    }
-
-    function _getPlayerName(address _userAddress) internal returns(string) {
-        for (uint i = 0; i < addresses.length; i++) {
-            if (addresses[i] == _userAddress) {
-                return players[i].name;
-            }
-        }
-    }
-
-    // @dev Game.deployed().then(function(instance){return instance.setPercentage(10)});
-    function setPercentage(uint _percentage) public whenPaused onlyOwner {
-        percentage = _percentage;
-    }
-
-    // @dev Game.deployed().then(function(instance){return instance.addCode(777)});
-    function addCode(uint _code) public whenPaused onlyOwner {
-        codes.push(_code);
-    }
-
-    // @dev Game.deployed().then(function(instance){return instance.checkCode(777)});
-    function checkCode(uint _code) public whenNotPaused onlyPlayer returns(bool) {
-        string memory playerName = _getPlayerName(msg.sender);
-        for (uint i = 0; i < codes.length; i++) {
-            if (codes[i] == _code) {
-                pointBank.givePoints(msg.sender, 100);
-                emit CodeRedeemed(playerName);
-                return true;
-            }
-        }
-        emit InvalidCode(_code);
-        return false;
-    }
-
-    // @dev Game.deployed().then(function(instance){return instance.createProfile("Raul", 0)});
-    function createProfile(string _name, int _option) public whenNotPaused restrictedName(_name) {
-        for (uint i = 0; i < addresses.length; i++) {
-            require(addresses[i] != msg.sender);
-        }
-        players.push(Profile(_name, msg.sender, _option));
-        addresses.push(msg.sender);
-        emit ProfileCreated(_name, msg.sender);
-    }
-
-    // @dev Game.deployed().then(function(instance){return instance.challenge('', 0)});
-    function challenge(address _challenged, int _option) public validOption(_option) whenNotPaused returns(uint) {
-        for (uint i = 0; i < players.length; ++i) {
-            if (players[i].addr == _challenged) {
-                emit Challenge(msg.sender, _challenged, _option);
-                if (_option == players[i].defaultOption) {
-                    emit ChallengeResult(players[i].defaultOption, 0, true); // DRAW
-                } else if ((_option - players[i].defaultOption) % 5 < 3) {
-                    pointBank.transferFromGame(msg.sender, _challenged, 10);
-                    emit ChallengeResult(players[i].defaultOption, _challenged, false); //Has won the challenged
-                } else {
-                    pointBank.transferFromGame(_challenged, msg.sender, 10);
-                    emit ChallengeResult(players[i].defaultOption, msg.sender, false); //Has won the challenger
-                }
-            }
-        }
-    }
-
-    function getPlayers() public view returns(address[], string) {
-        string memory names;
-        for (uint i = 0; i < players.length; ++i) {
-            string memory part;
-            if (i != 0) {
-                part = separator.toSlice().concat(players[i].name.toSlice());
-            }
-            else {
-                part = players[i].name;
-            }
-            names = names.toSlice().concat(part.toSlice());
-        }
-        return (addresses, names);
-    }
-
-    function pauseGame() public whenNotPaused onlyOwner {
-        pause();
-        pointBank.pause();
-        auction.pause();
-    }
-
-    // @dev Game.deployed().then(function(instance){return instance.resumeGame()})
-    function resumeGame() public whenPaused onlyOwner {
-        unpause();
-        pointBank.unpause();
-        auction.unpause();
-    }
+  function pauseGame() public whenNotPaused onlyOwner {
+    pause();
+    pointBank.pause();
+    auction.pause();
+  }
+  
+  function resumeGame() public whenPaused onlyOwner {
+    unpause();
+    pointBank.unpause();
+    auction.unpause();
+  }
 }
