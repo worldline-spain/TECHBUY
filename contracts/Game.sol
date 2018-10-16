@@ -26,6 +26,7 @@ contract Game is Pausable, Helper, NoETH {
     address addr;
     int defaultOption;
     uint id;
+    mapping (string => bool) codesRedeemed;
   }
 
   modifier validOption(int _value) {
@@ -38,8 +39,7 @@ contract Game is Pausable, Helper, NoETH {
     _;
   } 
 
-  
-
+  // @dev Game.deployed().then(function(instance){return instance.pointBank()})
   PointBank public pointBank;
   Auction public auction;
   
@@ -63,12 +63,16 @@ contract Game is Pausable, Helper, NoETH {
     codes_['00003']=130;
   }
 
+  // @dev Game.deployed().then(function(instance){return instance.codeRedemption("00000")})
   function codeRedemption(string _code) public  whenNotPaused onlyPlayer {
     require(codes_[_code]>0);
+    require(players_[msg.sender].codesRedeemed[_code] != true);
     pointBank.transfer(msg.sender, 100);
+    players_[msg.sender].codesRedeemed[_code] = true;
     emit CodeRedeemed(players_[msg.sender].name);
   }
 
+  // @dev Game.deployed().then(function(instance){return instance.userEnrollment("Raul", 0)})
   function userEnrollment(string _name, int _option) public whenNotPaused validOption(_option) notDuplicated(_name) {
     Profile memory newPlayer = Profile(_name, msg.sender, _option, 1);
     players_[newPlayer.addr]= newPlayer;
@@ -77,6 +81,7 @@ contract Game is Pausable, Helper, NoETH {
     emit ProfileCreated(_name);
   }
 
+  // @dev Game.deployed().then(function(instance){return instance.challenge("Raul", 2)})
   function challenge(string _challengedName, int _option) public onlyPlayer validOption(_option) whenNotPaused  {
     require(playersByName_[_challengedName].id > 0);
     require(playersByName_[_challengedName].addr!=msg.sender);

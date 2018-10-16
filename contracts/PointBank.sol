@@ -33,6 +33,7 @@ contract PointBank is  Pausable, NoETH {
     return totalSupply_;
   }
 
+  // @dev PointBank.at("0x7f93432af72e22ec0582a3cdf01ae21b2922e7e4").then(function(instance){return instance.balanceOf('0x34f5c9DE986bc6c26d704b8510330dfFfF9cDAc8')})
   function balanceOf(address _owner) external view returns (uint256) {
     return balances_[_owner];
   }
