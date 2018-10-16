@@ -2,10 +2,11 @@ pragma solidity ^0.4.22;
 
 import "./PointBank.sol";
 import "./Auction.sol";
-import "./Helper.sol";
-import "./Pausable.sol"; //Source from github
+import "./lib/NoETH.sol";
+import "./lib/Helper.sol";
+import "./lib/Pausable.sol"; //Source from github
 
-contract Game is Pausable, Helper {
+contract Game is Pausable, Helper, NoETH {
 
     // @dev var et; Game.deployed().then(function(instance){et = instance;});
     // @dev et.challenge('0x34f5c9DE986bc6c26d704b8510330dfFfF9cDAc8', 0).then(function(ret){console.log(ret.logs[0].args.challenger)})
@@ -62,12 +63,12 @@ contract Game is Pausable, Helper {
     }
 
     // @dev Game.deployed().then(function(instance){return instance.setPercentage(10)});
-    function setPercentage(uint _percentage) public whenPaused onlyPauser {
+    function setPercentage(uint _percentage) public whenPaused onlyOwner {
         percentage = _percentage;
     }
 
     // @dev Game.deployed().then(function(instance){return instance.addCode(777)});
-    function addCode(uint _code) public whenPaused onlyPauser {
+    function addCode(uint _code) public whenPaused onlyOwner {
         codes.push(_code);
     }
 
@@ -128,14 +129,14 @@ contract Game is Pausable, Helper {
         return (addresses, names);
     }
 
-    function pauseGame() public whenNotPaused onlyPauser {
+    function pauseGame() public whenNotPaused onlyOwner {
         pause();
         pointBank.pause();
         auction.pause();
     }
 
     // @dev Game.deployed().then(function(instance){return instance.resumeGame()})
-    function resumeGame() public whenPaused onlyPauser {
+    function resumeGame() public whenPaused onlyOwner {
         unpause();
         pointBank.unpause();
         auction.unpause();

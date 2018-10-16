@@ -1,9 +1,9 @@
 pragma solidity ^0.4.22;
 
-import "./ERC20.sol";
-import "./SafeMath.sol";
-import "./Ownable.sol"; // Source from github
-import "./Pausable.sol"; //Source from github
+import "./lib/ERC20.sol";
+import "./lib/SafeMath.sol";
+import "./lib/NoETH.sol";
+import "./lib/Pausable.sol"; //Source from github
 
 /**
  * @title Standard ERC20 token
@@ -12,7 +12,7 @@ import "./Pausable.sol"; //Source from github
  * https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
  * Originally based on code by FirstBlood: https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol
  */
-contract PointBank is ERC20, Ownable, Pausable {
+contract PointBank is ERC20,  Pausable, NoETH {
   using SafeMath for uint256;
 
   mapping (address => uint256) private balances_;
@@ -63,6 +63,17 @@ contract PointBank is ERC20, Ownable, Pausable {
     returns (uint256)
   {
     return allowed_[_owner][_spender];
+  }
+  // ------------------------------------------------------------------------
+  // Token owner can approve for `spender` to transferFrom(...) `tokens`
+  // from the token owner's account. The `spender` contract function
+  // `receiveApproval(...)` is then executed
+  // ------------------------------------------------------------------------
+  function approveAndCall(address spender, uint tokens, bytes data) public returns (bool success) {
+      allowed[msg.sender][spender] = tokens;
+      emit Approval(msg.sender, spender, tokens);
+      ApproveAndCallFallBack(spender).receiveApproval(msg.sender, tokens, this, data);
+      return true;
   }
 
   /**

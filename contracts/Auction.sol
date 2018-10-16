@@ -1,9 +1,19 @@
 pragma solidity ^0.4.22;
 
 import "./PointBank.sol";
-import "./Pausable.sol"; //Source from github
+import "./lib/NoETH.sol";
+import "./lib/Pausable.sol"; //Source from github
 
-contract Auction is Pausable {
+// ----------------------------------------------------------------------------
+// Contract function to receive approval and execute function in one call
+//
+// Borrowed from MiniMeToken
+// ----------------------------------------------------------------------------
+contract ApproveAndCallFallBack {
+    function receiveApproval(address from, uint256 tokens, address token, bytes data) public;
+}
+
+contract Auction is Pausable, NoETH {
 
     // @dev var et; Auction.at("0xb6d45dc615c30e9c1da6210e631f5d74975ce7c4").then(function(instance){et = instance;});
     // @dev et.bidUp(12,1).then(function(ret){console.log(ret.logs[1].args.bidAmount)});
@@ -25,9 +35,9 @@ contract Auction is Pausable {
     constructor(address _pointBankAddress) public {
         pointBankAddress = _pointBankAddress;
         PointBank(pointBankAddress).setAuction(this);
-        prizes.push(Prize({name:"Headphones", bestBidder: 0, bestBid: 0}));
-        prizes.push(Prize({name:"Pen", bestBidder: 0, bestBid: 0}));
-        prizes.push(Prize({name:"Notebook", bestBidder: 0, bestBid: 0}));
+        prizes.push(Prize({name:"prize1", bestBidder: 0, bestBid: 0}));
+        prizes.push(Prize({name:"prize2", bestBidder: 0, bestBid: 0}));
+        prizes.push(Prize({name:"prize3", bestBidder: 0, bestBid: 0}));
     }
 
     // @dev Auction.at('').then(function(instance){return instance.bidUp(10, 1)});
