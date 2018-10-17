@@ -44,10 +44,12 @@ contract Auction is Pausable, NoETH, ApproveAndCallFallBack {
     if (prize.bestBidder != address(0)) {
       _returnPoints(prize.bestBidder,prize.pointBankAddress, prize.bestBid);
     }
-    _takePoints(prize.bestBidder,prize.pointBankAddress, prize.bestBid);
+
+    _takePoints(_bidder, _pointBankAddress, _amount);
+
     prize.bestBidder = _bidder;
     prize.bestBid = _amount;
-    prize.pointBankAddress = _pointBankAddress;   
+    prize.pointBankAddress = _pointBankAddress; 
 
     emit Bid(prize.bestBidder, prize.name, _amount);   
   }

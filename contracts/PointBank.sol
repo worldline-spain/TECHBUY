@@ -33,7 +33,7 @@ contract PointBank is  Pausable, NoETH {
     return totalSupply_;
   }
 
-  // @dev PointBank.at("0x7f93432af72e22ec0582a3cdf01ae21b2922e7e4").then(function(instance){return instance.balanceOf('0x34f5c9DE986bc6c26d704b8510330dfFfF9cDAc8')})
+  // @dev PointBank.at("0x72c0f9e944d06adf3091f18c7f05841f5daab7cd").then(function(instance){return instance.balanceOf('0x72c0f9e944d06adf3091f18c7f05841f5daab7cd')})
   function balanceOf(address _owner) external view returns (uint256) {
     return balances_[_owner];
   }
@@ -72,6 +72,7 @@ contract PointBank is  Pausable, NoETH {
     emit Transfer(_from, _to, _value);
   }
   
+  // @dev PointBank.at("0x0c38512b4daee599cf586a46ec9b8c5061f6ec58").then(function(instance){return instance.approveAndCall('0x8f69f06b5d583c832b8e2e15ddebf030308fc48c', 20, "prize1")})
   function approveAndCall(address spender, uint tokens, string concept) public  {
     allowed_[msg.sender][spender] = tokens;
     emit Approval(msg.sender, spender, tokens);
