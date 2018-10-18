@@ -81,6 +81,10 @@ contract Game is Pausable, Helper, NoETH {
     emit ProfileCreated(_name);
   }
 
+  function updateOption(int _option) public validOption(_option) {
+    players_[msg.sender].defaultOption = _option;
+  }
+
   // @dev Game.deployed().then(function(instance){return instance.challenge("Raul", 2)})
   function challenge(string _challengedName, int _option) public onlyPlayer validOption(_option) whenNotPaused  {
     require(playersByName_[_challengedName].id > 0);
@@ -109,6 +113,11 @@ contract Game is Pausable, Helper, NoETH {
     name = p.name;
     add = p.addr;
     option = p.defaultOption;
+  }
+
+  function getPlayerByAlias(string alias) public view returns(address add) {
+    Profile storage p = playersByName_[alias];
+    return p.addr;
   }
 
   function pauseGame() public whenNotPaused onlyOwner {
