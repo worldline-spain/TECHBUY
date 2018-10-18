@@ -81,7 +81,7 @@ contract Game is Pausable, Helper, NoETH {
     emit ProfileCreated(_name);
   }
 
-  function updateOption(int _option) public validOption(_option) {
+  function updateOption(int _option) public validOption(_option) onlyPlayer {
     players_[msg.sender].defaultOption = _option;
   }
 
@@ -115,7 +115,7 @@ contract Game is Pausable, Helper, NoETH {
     option = p.defaultOption;
   }
 
-  function getPlayerByAlias(string alias) public view returns(address add) {
+  function getPlayerByAlias(string alias) public view onlyPlayer returns(address add) {
     Profile storage p = playersByName_[alias];
     return p.addr;
   }
