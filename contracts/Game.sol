@@ -107,7 +107,7 @@ contract Game is Pausable, Helper, NoETH {
     return (playersArray_[0].addr, playersArray_[0].name);
   }
 
-  function getMyPlayer() public view returns(string name, address add, int option) {
+  function getMyPlayer() public view onlyPlayer returns(string name, address add, int option) {
     //require(players_[msg.sender] != null);
     Profile storage p = players_[msg.sender];
     name = p.name;
