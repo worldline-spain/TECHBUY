@@ -30,12 +30,12 @@ contract Game is Pausable, Helper, NoETH {
   }
 
   modifier validOption(int _value) {
-    require(int(Option.Scissors) >= _value, "Invalid option");
+    require(int(Option.Scissors) >= _value, "game_validOption_option_notinrange");
     _;
   }
 
   modifier onlyPlayer() {
-    require( players_[msg.sender].id > 0 );
+    require( players_[msg.sender].id > 0, "game_onlyPlayer_notaplayer");
     _;
   } 
 
@@ -49,8 +49,8 @@ contract Game is Pausable, Helper, NoETH {
   mapping (string => uint) private codes_;
 
   modifier notDuplicated(string _name){
-    require(players_[msg.sender].id == 0);
-    require(playersByName_[_name].id == 0);
+    require(players_[msg.sender].id == 0, "game_notDuplicated_playersnotempty");
+    require(playersByName_[_name].id == 0, "game_notDuplicated_playersByNamenotempty");
     _;
   }
 
@@ -65,9 +65,9 @@ contract Game is Pausable, Helper, NoETH {
 
   // @dev Game.deployed().then(function(instance){return instance.codeRedemption("00000")})
   function codeRedemption(string _code) public  whenNotPaused onlyPlayer {
-    require(codes_[_code]>0);
-    require(players_[msg.sender].codesRedeemed[_code] != true);
-    pointBank.transfer(msg.sender, 100);
+    require(codes_[_code]>0, "game_codeRedemption_invalidcode");
+    require(players_[msg.sender].codesRedeemed[_code] != true, "game_codeRedemption_codeused");
+    pointBank.transfer(msg.sender, codes_[_code]);
     players_[msg.sender].codesRedeemed[_code] = true;
     emit CodeRedeemed(players_[msg.sender].name);
   }
@@ -81,32 +81,35 @@ contract Game is Pausable, Helper, NoETH {
     emit ProfileCreated(_name);
   }
 
+  // @dev Game.deployed().then(function(instance){return instance.updateOption(1)})
   function updateOption(int _option) public validOption(_option) onlyPlayer {
     players_[msg.sender].defaultOption = _option;
+    playersByName_[players_[msg.sender].name].defaultOption = _option;
   }
 
   // @dev Game.deployed().then(function(instance){return instance.challenge("Raul", 2)})
   function challenge(string _challengedName, int _option) public onlyPlayer validOption(_option) whenNotPaused  {
-    require(playersByName_[_challengedName].id > 0);
-    require(playersByName_[_challengedName].addr!=msg.sender);
+    require(playersByName_[_challengedName].id > 0, "game_challenge_isnotaplayer");
+    require(playersByName_[_challengedName].addr!=msg.sender, "game_challenge_challengingyourself");
 
     emit Challenge(players_[msg.sender].name, _challengedName);
 
     if ((_option - playersByName_[_challengedName].defaultOption) % 5 < 3) {
-      pointBank.transferFrom(msg.sender, playersByName_[_challengedName].addr, 100);
-      emit ChallengeResult( _challengedName); 
-    } else {
       pointBank.transferFrom(playersByName_[_challengedName].addr, msg.sender, 100);
       emit ChallengeResult( players_[msg.sender].name); 
+    } else {
+      pointBank.transferFrom(msg.sender, playersByName_[_challengedName].addr, 100);
+      emit ChallengeResult( _challengedName); 
     }
 
   }
 
   function getRandomPlayer() public view returns(address, string) {
-    require(playersArray_.length>0);
+    require(playersArray_.length>0, "game_getRandomPlayer_zeroplayers");
     return (playersArray_[0].addr, playersArray_[0].name);
   }
 
+  // @dev Game.deployed().then(function(instance){return instance.getMyPlayer()})
   function getMyPlayer() public view onlyPlayer returns(string name, address add, int option) {
     //require(players_[msg.sender] != null);
     Profile storage p = players_[msg.sender];

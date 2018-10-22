@@ -33,14 +33,14 @@ contract PointBank is  Pausable, NoETH {
     return totalSupply_;
   }
 
-  // @dev PointBank.at("0x72c0f9e944d06adf3091f18c7f05841f5daab7cd").then(function(instance){return instance.balanceOf('0x72c0f9e944d06adf3091f18c7f05841f5daab7cd')})
+  // @dev PointBank.at("0x09f8909e8caf9ce069bb47732359117bbaf047f1").then(function(instance){return instance.balanceOf('0x89eb0d7A5f7692a5D2b24276F9C1B10cA7Df601A')})
   function balanceOf(address _owner) external view returns (uint256) {
     return balances_[_owner];
   }
 
   function transfer(address _to, uint256 _value) public  {
-    require(_value <= balances_[msg.sender]);
-    require(_to != address(0));
+    require(_value <= balances_[msg.sender], "pointBank_transfer_notenoughmoney");
+    require(_to != address(0), "pointBank_transfer_invalidaddress");
   
     balances_[msg.sender] = balances_[msg.sender].sub(_value);
     balances_[_to] = balances_[_to].add(_value);
@@ -54,13 +54,13 @@ contract PointBank is  Pausable, NoETH {
   )
     public
   {
-    require(_value <= balances_[_from]);
+    require(_value <= balances_[_from], "pointBank_transferFrom_notenoughmoney");
 
     if( msg.sender!= owner ) {
-      require(_value <= allowed_[_from][msg.sender]);
+      require(_value <= allowed_[_from][msg.sender], "pointBank_transferFrom_notallowed");
     }
     
-    require(_to != address(0));
+    require(_to != address(0), "pointBank_transferFrom_invalidaddress");
 
     balances_[_from] = balances_[_from].sub(_value);
     balances_[_to] = balances_[_to].add(_value);

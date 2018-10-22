@@ -35,11 +35,11 @@ contract Auction is Pausable, NoETH, ApproveAndCallFallBack {
   }
 
   function _bidUp(address _bidder, address _pointBankAddress, uint _amount, string _prize) private  {
-    require( prizes_[_prize].id > 0 );
+    require( prizes_[_prize].id > 0, "auction_bidUp_notaprize" );
     
     Prize storage prize = prizes_[_prize];
     
-    require( _amount > prize.bestBid);
+    require( _amount > prize.bestBid, "auction_bidUp_notenoughbid");
       
     if (prize.bestBidder != address(0)) {
       _returnPoints(prize.bestBidder,prize.pointBankAddress, prize.bestBid);
