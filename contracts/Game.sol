@@ -8,10 +8,35 @@ import "./lib/Pausable.sol";
 
 contract Game is Pausable, Helper, NoETH {
 
-  event ProfileCreated(string name);
-  event Challenge(string challenger, string challenged);
-  event ChallengeResult(string winner);
-  event CodeRedeemed(string playerName);
+  event ProfileCreated(
+    address indexed owner,
+    string name
+  );
+  
+  event ProfileUpdate(
+    address indexed owner,
+    string name
+  );
+
+  event Challenge(
+    address indexed challenger,
+    string challengerName,
+    address indexed challenged, 
+    string challengedName
+  );
+
+  event ChallengeResult(
+    address indexed challenger,
+    string challengerName,
+    address indexed challenged, 
+    string challengedName,
+    string winner
+  );
+
+  event CodeRedeemed(
+    address indexed owner,
+    string playerName
+  );
 
   enum Option {
     Rock,
@@ -61,6 +86,9 @@ contract Game is Pausable, Helper, NoETH {
     codes_['00001']=110;
     codes_['00002']=120;
     codes_['00003']=130;
+    codes_['00004']=100;
+    codes_['00005']=110;
+    codes_['00006']=120;
   }
 
   // @dev Game.deployed().then(function(instance){return instance.codeRedemption("00000")})
@@ -69,7 +97,7 @@ contract Game is Pausable, Helper, NoETH {
     require(players_[msg.sender].codesRedeemed[_code] != true, "game_codeRedemption_codeused");
     pointBank.transfer(msg.sender, codes_[_code]);
     players_[msg.sender].codesRedeemed[_code] = true;
-    emit CodeRedeemed(players_[msg.sender].name);
+    emit CodeRedeemed(msg.sender, players_[msg.sender].name);
   }
 
   // @dev Game.deployed().then(function(instance){return instance.userEnrollment("Raul", 0)})
@@ -78,13 +106,14 @@ contract Game is Pausable, Helper, NoETH {
     players_[newPlayer.addr]= newPlayer;
     playersByName_[newPlayer.name] = newPlayer;
     playersArray_.push(newPlayer);
-    emit ProfileCreated(_name);
+    emit ProfileCreated(msg.sender, _name);
   }
 
   // @dev Game.deployed().then(function(instance){return instance.updateOption(1)})
   function updateOption(int _option) public validOption(_option) onlyPlayer {
     players_[msg.sender].defaultOption = _option;
     playersByName_[players_[msg.sender].name].defaultOption = _option;
+    emit ProfileUpdate(msg.sender, players_[msg.sender].name);
   }
 
   // @dev Game.deployed().then(function(instance){return instance.challenge("Raul", 2)})
@@ -92,14 +121,14 @@ contract Game is Pausable, Helper, NoETH {
     require(playersByName_[_challengedName].id > 0, "game_challenge_isnotaplayer");
     require(playersByName_[_challengedName].addr!=msg.sender, "game_challenge_challengingyourself");
 
-    emit Challenge(players_[msg.sender].name, _challengedName);
+    emit Challenge(msg.sender,players_[msg.sender].name,playersByName_[_challengedName].addr, _challengedName);
 
     if ((_option - playersByName_[_challengedName].defaultOption) % 5 < 3) {
       pointBank.transferFrom(playersByName_[_challengedName].addr, msg.sender, 100);
-      emit ChallengeResult( players_[msg.sender].name); 
+      emit ChallengeResult(msg.sender, players_[msg.sender].name,playersByName_[_challengedName].addr,_challengedName, players_[msg.sender].name); 
     } else {
       pointBank.transferFrom(msg.sender, playersByName_[_challengedName].addr, 100);
-      emit ChallengeResult( _challengedName); 
+      emit ChallengeResult(msg.sender, players_[msg.sender].name,playersByName_[_challengedName].addr,_challengedName,_challengedName); 
     }
 
   }

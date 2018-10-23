@@ -7,7 +7,11 @@ import "./lib/Pausable.sol";
 
 contract Auction is Pausable, NoETH, ApproveAndCallFallBack {
 
-  event Bid(address bidder, string prize, uint bidAmount);
+  event Bid(
+    address indexed bidder,
+    string indexed prize,
+    uint bidAmount
+  );
 
   struct Prize {
     string name;
