@@ -72,6 +72,7 @@ contract Game is Pausable, Helper, NoETH {
   mapping (string => Profile) private playersByName_;
   Profile[] playersArray_;
   mapping (string => uint) private codes_;
+  uint private randomUserDelta_;
 
   modifier notDuplicated(string _name){
     require(players_[msg.sender].id == 0, "game_notDuplicated_playersnotempty");
@@ -89,6 +90,7 @@ contract Game is Pausable, Helper, NoETH {
     codes_['00004']=100;
     codes_['00005']=110;
     codes_['00006']=120;
+    randomUserDelta_=0;
   }
 
   // @dev Game.deployed().then(function(instance){return instance.codeRedemption("00000")})
@@ -133,9 +135,11 @@ contract Game is Pausable, Helper, NoETH {
 
   }
 
-  function getRandomPlayer() public view returns(address, string) {
+  function getRandomPlayer(uint _random) public view returns(address, string) {
     require(playersArray_.length>0, "game_getRandomPlayer_zeroplayers");
-    return (playersArray_[0].addr, playersArray_[0].name);
+    require(_random >0, "game_getRandomPlayer_zerorandom");
+    uint idx = _random % playersArray_.length;
+    return (playersArray_[idx].addr, playersArray_[idx].name);
   }
 
   // @dev Game.deployed().then(function(instance){return instance.getMyPlayer()})
