@@ -5,8 +5,9 @@ import "./Auction.sol";
 import "./lib/Utils.sol";
 import "./lib/Helper.sol";
 import "./lib/Pausable.sol";
+import "./lib/Random.sol";
 
-contract Game is Pausable, Helper, NoETH {
+contract Game is Pausable, Helper, NoETH, Random {
 
   event ProfileCreated(
     address indexed owner,
@@ -135,10 +136,36 @@ contract Game is Pausable, Helper, NoETH {
 
   }
 
-  function getRandomPlayer(uint _random) public view returns(address, string) {
+  // @dev Game.deployed().then(function(instance){return instance.challengeRandom(2)})
+  function challengeRandom(int _option) public onlyPlayer validOption(_option) whenNotPaused {
+    require(playersArray_.length>0, "game_challengeRandom_zeroplayers");
+
+    uint idx = randrange(0, playersArray_.length);
+
+    if (idx == players_[msg.sender].id) {
+      idx = (idx + 1) % playersArray_.length;
+    }
+
+    Profile storage challenged = playersArray_[idx];
+
+    require(challenged.id > 0, "game_challenge_isnotaplayer");
+    require(challenged.addr!=msg.sender, "game_challenge_challengingyourself");
+
+    emit Challenge(msg.sender,players_[msg.sender].name,challenged.addr, challenged.name);
+
+    if ((_option - challenged.defaultOption) % 5 < 3) {
+      pointBank.transferFrom(challenged.addr, msg.sender, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name, players_[msg.sender].name); 
+    } else {
+      pointBank.transferFrom(msg.sender, challenged.addr, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name , challenged.name); 
+    }
+  }
+
+  // @dev Game.deployed().then(function(instance){return instance.getRandomPlayer()})
+  function getRandomPlayer() public view returns(address, string) {
     require(playersArray_.length>0, "game_getRandomPlayer_zeroplayers");
-    require(_random >0, "game_getRandomPlayer_zerorandom");
-    uint idx = _random % playersArray_.length;
+    uint idx = randrange(0, playersArray_.length);
     return (playersArray_[idx].addr, playersArray_[idx].name);
   }
 
