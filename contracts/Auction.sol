@@ -21,6 +21,11 @@ contract Auction is Pausable, NoETH, ApproveAndCallFallBack {
     uint id;
   }
 
+  modifier validPrize(string _prize) {
+    require( prizes_[_prize].id > 0, "auction_bidUp_notaprize" );
+    _;
+  }
+
   mapping (string => Prize) private prizes_;
 
   constructor() public {
@@ -38,8 +43,7 @@ contract Auction is Pausable, NoETH, ApproveAndCallFallBack {
     _bidUp(fromAddress, tokenAddress , tokens,  _concept);
   }
 
-  function _bidUp(address _bidder, address _pointBankAddress, uint _amount, string _prize) private  {
-    require( prizes_[_prize].id > 0, "auction_bidUp_notaprize" );
+  function _bidUp(address _bidder, address _pointBankAddress, uint _amount, string _prize) private  validPrize(_prize) {
     
     Prize storage prize = prizes_[_prize];
     
@@ -50,7 +54,6 @@ contract Auction is Pausable, NoETH, ApproveAndCallFallBack {
     }
 
     _takePoints(_bidder, _pointBankAddress, _amount);
-
     prize.bestBidder = _bidder;
     prize.bestBid = _amount;
     prize.pointBankAddress = _pointBankAddress; 
@@ -64,6 +67,10 @@ contract Auction is Pausable, NoETH, ApproveAndCallFallBack {
 
   function _takePoints(address _from, address  pointBankAddress, uint _amount) internal {
     PointBank(pointBankAddress).transferFrom(_from, this, _amount);
+  }
+
+  function getPrizeStatus(string _prize)  public view validPrize(_prize) returns (string,address,uint)  {
+    return(prizes_[_prize].name, prizes_[_prize].bestBidder, prizes_[_prize].bestBid);
   }
    
 }

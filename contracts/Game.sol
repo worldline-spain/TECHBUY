@@ -171,7 +171,6 @@ contract Game is Pausable, Helper, NoETH, Random {
 
   // @dev Game.deployed().then(function(instance){return instance.getMyPlayer()})
   function getMyPlayer() public view onlyPlayer returns(string name, address add, int option) {
-    //require(players_[msg.sender] != null);
     Profile storage p = players_[msg.sender];
     name = p.name;
     add = p.addr;

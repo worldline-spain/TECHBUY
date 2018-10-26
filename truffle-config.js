@@ -26,7 +26,7 @@ module.exports = {
       },
       network_id: "*", 
       gasPrice: 0,
-      gas: 4500000,
+      gas: 999999999999,
       from: process.env.ALASTRIA_ACCOUNT,
     }
   }
