@@ -8,8 +8,8 @@ import "./lib/Pausable.sol";
 contract Auction is Pausable, NoETH, ApproveAndCallFallBack {
 
   event Bid(
-    address indexed bidder,
-    string indexed prize,
+    address  bidder,
+    string  prize,
     uint bidAmount
   );
 
@@ -58,7 +58,7 @@ contract Auction is Pausable, NoETH, ApproveAndCallFallBack {
     prize.bestBid = _amount;
     prize.pointBankAddress = _pointBankAddress; 
 
-    emit Bid(prize.bestBidder, prize.name, _amount);   
+    emit Bid(prize.bestBidder, _prize, _amount);   
   }
 
   function _returnPoints(address _to, address  pointBankAddress, uint _amount) internal {
