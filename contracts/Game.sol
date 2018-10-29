@@ -142,7 +142,7 @@ contract Game is Pausable, Helper, NoETH, Random {
 
     uint idx = randrange(0, playersArray_.length);
 
-    if (idx == players_[msg.sender].id) {
+    if (msg.sender == playersArray_[idx].addr) {
       idx = (idx + 1) % playersArray_.length;
     }
 
@@ -152,14 +152,44 @@ contract Game is Pausable, Helper, NoETH, Random {
     require(challenged.addr!=msg.sender, "game_challenge_challengingyourself");
 
     emit Challenge(msg.sender,players_[msg.sender].name,challenged.addr, challenged.name);
+    
+    if ((_option == 0 ) && ((challenged.defaultOption == 4)||( challenged.defaultOption == 3))) {
+      // sender wins
+      pointBank.transferFrom(challenged.addr, msg.sender, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name, players_[msg.sender].name); 
+    } else if ((_option == 1 ) && ((challenged.defaultOption == 0)||( challenged.defaultOption == 4))) {
+      // sender wins
+      pointBank.transferFrom(challenged.addr, msg.sender, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name, players_[msg.sender].name); 
+    } else if ((_option == 2 ) && ((challenged.defaultOption == 0)||( challenged.defaultOption == 1))) {
+      // sender wins
+      pointBank.transferFrom(challenged.addr, msg.sender, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name, players_[msg.sender].name); 
+    } else if ((_option == 3 ) && ((challenged.defaultOption == 2)||( challenged.defaultOption == 1))) {
+      // sender wins
+      pointBank.transferFrom(challenged.addr, msg.sender, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name, players_[msg.sender].name); 
+    } else if ((_option == 4 ) && ((challenged.defaultOption == 2)||( challenged.defaultOption == 3))) {
+      // sender wins
+      pointBank.transferFrom(challenged.addr, msg.sender, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name, players_[msg.sender].name); 
+    } else if (_option == challenged.defaultOption ) {
+      //draw
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name , "draw");
+    } else {
+      // sender lost
+      pointBank.transferFrom(msg.sender, challenged.addr, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name , challenged.name);
+    }
 
+    /*
     if ((_option - challenged.defaultOption) % 5 < 3) {
       pointBank.transferFrom(challenged.addr, msg.sender, 100);
       emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name, players_[msg.sender].name); 
     } else {
       pointBank.transferFrom(msg.sender, challenged.addr, 100);
       emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name , challenged.name); 
-    }
+    }*/
   }
 
   // @dev Game.deployed().then(function(instance){return instance.getRandomPlayer()})
