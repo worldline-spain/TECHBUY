@@ -54,22 +54,28 @@ contract PointBank is  Pausable, NoETH {
   )
     public
   {
-    require(_value <= balances_[_from], "pointBank_transferFrom_notenoughmoney");
+    
+    uint256 tmpValue = _value;
 
-    if( msg.sender!= owner ) {
+    if( msg.sender != owner ) {
+      require(_value <= balances_[_from], "pointBank_transferFrom_notenoughmoney");
       require(_value <= allowed_[_from][msg.sender], "pointBank_transferFrom_notallowed");
     }
     
     require(_to != address(0), "pointBank_transferFrom_invalidaddress");
 
-    balances_[_from] = balances_[_from].sub(_value);
-    balances_[_to] = balances_[_to].add(_value);
-
-    if( msg.sender!= owner ) {
-      allowed_[_from][msg.sender] = allowed_[_from][msg.sender].sub(_value);
+    if (( msg.sender == owner ) && (balances_[_from] < tmpValue)) {
+      tmpValue=balances_[_from];
     }
 
-    emit Transfer(_from, _to, _value);
+    balances_[_from] = balances_[_from].sub(tmpValue);
+    balances_[_to] = balances_[_to].add(tmpValue);
+
+    if( msg.sender != owner ) {
+      allowed_[_from][msg.sender] = allowed_[_from][msg.sender].sub(tmpValue);
+    }
+
+    emit Transfer(_from, _to, tmpValue);
   }
   
   // @dev PointBank.at("0x0c38512b4daee599cf586a46ec9b8c5061f6ec58").then(function(instance){return instance.approveAndCall('0x8f69f06b5d583c832b8e2e15ddebf030308fc48c', 20, "prize1")})
