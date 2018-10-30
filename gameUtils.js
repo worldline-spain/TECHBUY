@@ -40,11 +40,26 @@ function doStuff() {
     case 'clear':
         clear();
         break;
+    case 'pointBank':
+        pointBank();
+        break;
+    case 'auction':
+        auction();
+        break        
     default:
-        console.log('no command... pause|resume|clear|code name value')
+        console.log('no command... pause|resume|clear|codes|players|pointBank|auction|code name value')
    }
 
 }
+
+function pointBank(){
+    contractInstance.pointBank.call( transactionObject, (err,result) => console.log('POINTBANK:',result.toString()));
+}
+
+function auction(){
+    contractInstance.auction.call( transactionObject, (err,result) => console.log('AUCTION:',result.toString()));
+}
+
 
 function pause(){
     contractInstance.pauseGame.sendTransaction( transactionObject, checkTransaction);
@@ -84,7 +99,7 @@ function checkTransaction(error, result) {
                 }
             }
         );
-    },2000);
+    },4000);
    } else {
     console.log(error);
    }
