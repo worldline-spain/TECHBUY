@@ -29,16 +29,16 @@ contract PointBank is  Pausable, NoETH {
     uint256 value
   );
 
-  function totalSupply() external view returns (uint256) {
+  function totalSupply() external view whenNotPaused returns (uint256) {
     return totalSupply_;
   }
 
   // @dev PointBank.at("0x09f8909e8caf9ce069bb47732359117bbaf047f1").then(function(instance){return instance.balanceOf('0x89eb0d7A5f7692a5D2b24276F9C1B10cA7Df601A')})
-  function balanceOf(address _owner) external view returns (uint256) {
+  function balanceOf(address _owner) external view whenNotPaused returns (uint256) {
     return balances_[_owner];
   }
 
-  function transfer(address _to, uint256 _value) public  {
+  function transfer(address _to, uint256 _value) public  whenNotPaused {
     require(_value <= balances_[msg.sender], "pointBank_transfer_notenoughmoney");
     require(_to != address(0), "pointBank_transfer_invalidaddress");
   
@@ -52,7 +52,7 @@ contract PointBank is  Pausable, NoETH {
     address _to,
     uint256 _value
   )
-    public
+    public whenNotPaused
   {
     
     uint256 tmpValue = _value;
@@ -79,11 +79,20 @@ contract PointBank is  Pausable, NoETH {
   }
   
   // @dev PointBank.at("0x0c38512b4daee599cf586a46ec9b8c5061f6ec58").then(function(instance){return instance.approveAndCall('0x8f69f06b5d583c832b8e2e15ddebf030308fc48c', 20, "prize1")})
-  function approveAndCall(address spender, uint tokens, string concept) public  {
+  function approveAndCall(address spender, uint tokens, string concept) public whenNotPaused {
     allowed_[msg.sender][spender] = tokens;
     emit Approval(msg.sender, spender, tokens);
     ApproveAndCallFallBack(spender).receiveApproval(msg.sender, this, tokens,  concept);
   }
+  
+  function clear(address user) public onlyOwner {
+    delete balances_[user];
+    delete allowed_[user][msg.sender];
+  }
 
+  function resetInitialBalance() public onlyOwner {
+    balances_[owner] = totalSupply_; 
+  }
+  
 
 }

@@ -18,25 +18,18 @@ contract Auction is Pausable, NoETH, ApproveAndCallFallBack {
     address bestBidder;
     address pointBankAddress;
     uint bestBid;
-    uint id;
+    uint initialized;
   }
 
   modifier validPrize(string _prize) {
-    require( prizes_[_prize].id > 0, "auction_bidUp_notaprize" );
+    require( prizes_[_prize].initialized > 0, "auction_bidUp_notaprize" );
     _;
   }
 
   mapping (string => Prize) private prizes_;
 
-  constructor() public {
-    Prize memory tmPrize1 = Prize("prize1", address(0), address(0), 0, 1);
-    prizes_[tmPrize1.name] =  tmPrize1;
-    
-    Prize memory tmPrize2 = Prize("prize2", address(0), address(0), 0, 2);
-    prizes_[tmPrize2.name] =  tmPrize2;
-
-    Prize memory tmPrize3 = Prize("prize3", address(0), address(0), 0, 3);
-    prizes_[tmPrize3.name] =  tmPrize3;    
+  constructor() public {  
+    _resetPrizes();
   }
 
   function receiveApproval(address fromAddress, address tokenAddress, uint256 tokens,  string _concept) public whenNotPaused {
@@ -69,8 +62,17 @@ contract Auction is Pausable, NoETH, ApproveAndCallFallBack {
     PointBank(pointBankAddress).transferFrom(_from, this, _amount);
   }
 
-  function getPrizeStatus(string _prize)  public view validPrize(_prize) returns (string,address,uint)  {
+  function getPrizeStatus(string _prize)  public view validPrize(_prize) whenNotPaused returns (string,address,uint)  {
     return(prizes_[_prize].name, prizes_[_prize].bestBidder, prizes_[_prize].bestBid);
   }
-   
+  
+  function _resetPrizes() private {
+    prizes_[ "prize1" ] =  Prize("prize1", address(0), address(0), 0, 1);
+    prizes_[ "prize2" ] =  Prize("prize2", address(0), address(0), 0, 2);
+    prizes_[ "prize3" ] =  Prize("prize3", address(0), address(0), 0, 3);
+  }
+  
+  function clear() public onlyOwner {  
+    _resetPrizes();
+  }
 }
