@@ -17,7 +17,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(process.env.ALASTRIA_URL, 
 const contract = web3.eth.contract(gameJSON.abi);
 const contractInstance = contract.at(gameJSON.networks[process.env.ALASTRIA_NETWORKID].address);
 
-web3.personal.unlockAccount(process.env.ALASTRIA_ACCOUNT,process.env.ALASTRIA_ACCOUNT_PASSWORD, 1000, doStuff);
+//web3.personal.unlockAccount(process.env.ALASTRIA_ACCOUNT,process.env.ALASTRIA_ACCOUNT_PASSWORD, 1000, doStuff);
 
 function doStuff() {
     console.log('Account unlocked!');
@@ -99,8 +99,10 @@ function checkTransaction(error, result) {
                 }
             }
         );
-    },4000);
+    },10000);
    } else {
     console.log(error);
    }
 }
+
+doStuff();

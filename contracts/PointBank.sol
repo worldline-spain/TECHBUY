@@ -7,7 +7,15 @@ import "./lib/Pausable.sol";
 contract PointBank is  Pausable, NoETH {
   using SafeMath for uint256;
 
+  struct Movements {
+    int move0;
+    int move1;
+    int move2;    
+  }
+
   mapping (address => uint256) private balances_;
+
+  mapping (address => Movements) private balanceMovement_;
 
   mapping (address => mapping (address => uint256)) private allowed_;
 
@@ -33,9 +41,12 @@ contract PointBank is  Pausable, NoETH {
     return totalSupply_;
   }
 
-  // @dev PointBank.at("0x09f8909e8caf9ce069bb47732359117bbaf047f1").then(function(instance){return instance.balanceOf('0x89eb0d7A5f7692a5D2b24276F9C1B10cA7Df601A')})
   function balanceOf(address _owner) external view whenNotPaused returns (uint256) {
     return balances_[_owner];
+  }
+
+  function balanceMovements(address _owner) external view whenNotPaused returns (int, int, int) {
+    return (balanceMovement_[_owner].move0, balanceMovement_[_owner].move1, balanceMovement_[_owner].move2);
   }
 
   function transfer(address _to, uint256 _value) public  whenNotPaused {
@@ -44,6 +55,16 @@ contract PointBank is  Pausable, NoETH {
   
     balances_[msg.sender] = balances_[msg.sender].sub(_value);
     balances_[_to] = balances_[_to].add(_value);
+
+    balances_[msg.sender] = balances_[msg.sender].sub(_value);
+    balanceMovement_[msg.sender].move2=balanceMovement_[msg.sender].move1;
+    balanceMovement_[msg.sender].move1=balanceMovement_[msg.sender].move0;
+    balanceMovement_[msg.sender].move0 = int(_value) * -1;
+    balances_[_to] = balances_[_to].add(_value);
+    balanceMovement_[_to].move2=balanceMovement_[_to].move1;
+    balanceMovement_[_to].move1=balanceMovement_[_to].move0;
+    balanceMovement_[_to].move0= int(_value);
+
     emit Transfer(msg.sender, _to, _value);
   }
 
@@ -69,7 +90,13 @@ contract PointBank is  Pausable, NoETH {
     }
 
     balances_[_from] = balances_[_from].sub(tmpValue);
+    balanceMovement_[_from].move2=balanceMovement_[_from].move1;
+    balanceMovement_[_from].move1=balanceMovement_[_from].move0;
+    balanceMovement_[_from].move0 = int(tmpValue) * -1;
     balances_[_to] = balances_[_to].add(tmpValue);
+    balanceMovement_[_to].move2=balanceMovement_[_to].move1;
+    balanceMovement_[_to].move1=balanceMovement_[_to].move0;
+    balanceMovement_[_to].move0 = int(tmpValue);
 
     if( msg.sender != owner ) {
       allowed_[_from][msg.sender] = allowed_[_from][msg.sender].sub(tmpValue);
@@ -87,6 +114,7 @@ contract PointBank is  Pausable, NoETH {
   
   function clear(address user) public onlyOwner {
     delete balances_[user];
+    delete balanceMovement_[user];
     delete allowed_[user][msg.sender];
   }
 
