@@ -99,7 +99,7 @@ function checkTransaction(error, result) {
                 }
             }
         );
-    },10000);
+    },15000);
    } else {
     console.log(error);
    }

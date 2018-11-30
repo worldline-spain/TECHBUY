@@ -164,6 +164,46 @@ contract Game is Pausable, Helper, NoETH, Random {
     return (playersArray_[idx].addr, playersArray_[idx].name);
   }
 
+  function challengePlayer(address _address, int _option) public whenNotPaused onlyPlayer validOption(_option)  {
+    require(playersArray_.length>0, "game_challengeRandom_zeroplayers");
+    
+    Profile storage challenged = players_[_address];
+    require(challenged.initialized > 0, "game_challenge_isnotaplayer");
+    require(challenged.addr!=msg.sender, "game_challenge_challengingyourself");
+
+    emit Challenge(msg.sender,players_[msg.sender].name,challenged.addr, challenged.name);
+    
+    if ((_option == int(Option.Rock) ) && ((challenged.defaultOption == int(Option.Scissors))||( challenged.defaultOption == int(Option.Lizard)))) {
+      // sender wins
+      pointBank.transferFrom(challenged.addr, msg.sender, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name, players_[msg.sender].name); 
+    } else if ((_option == int(Option.Spock)) && ((challenged.defaultOption == int(Option.Rock))||( challenged.defaultOption == int(Option.Scissors)))) {
+      // sender wins
+      pointBank.transferFrom(challenged.addr, msg.sender, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name, players_[msg.sender].name); 
+    } else if ((_option == int(Option.Paper)) && ((challenged.defaultOption == int(Option.Rock) )||( challenged.defaultOption == int(Option.Spock) ))) {
+      // sender wins
+      pointBank.transferFrom(challenged.addr, msg.sender, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name, players_[msg.sender].name); 
+    } else if ((_option == int(Option.Lizard) ) && ((challenged.defaultOption == int(Option.Paper))||( challenged.defaultOption == int(Option.Spock) ))) {
+      // sender wins
+      pointBank.transferFrom(challenged.addr, msg.sender, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name, players_[msg.sender].name); 
+    } else if ((_option == int(Option.Scissors) ) && ((challenged.defaultOption == int(Option.Paper))||( challenged.defaultOption == int(Option.Lizard)))) {
+      // sender wins
+      pointBank.transferFrom(challenged.addr, msg.sender, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name, players_[msg.sender].name); 
+    } else if (_option == challenged.defaultOption ) {
+      //draw
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name , "draw");
+    } else {
+      // sender lost
+      pointBank.transferFrom(msg.sender, challenged.addr, 100);
+      emit ChallengeResult(msg.sender, players_[msg.sender].name, challenged.addr, challenged.name , challenged.name);
+    }
+
+  }
+
   // @dev Game.deployed().then(function(instance){return instance.getMyPlayer()})
   function getMyPlayer() public view  onlyPlayer whenNotPaused returns(string name, address add, int option) {
     Profile storage p = players_[msg.sender];

@@ -52,9 +52,6 @@ contract PointBank is  Pausable, NoETH {
   function transfer(address _to, uint256 _value) public  whenNotPaused {
     require(_value <= balances_[msg.sender], "pointBank_transfer_notenoughmoney");
     require(_to != address(0), "pointBank_transfer_invalidaddress");
-  
-    balances_[msg.sender] = balances_[msg.sender].sub(_value);
-    balances_[_to] = balances_[_to].add(_value);
 
     balances_[msg.sender] = balances_[msg.sender].sub(_value);
     balanceMovement_[msg.sender].move2=balanceMovement_[msg.sender].move1;
