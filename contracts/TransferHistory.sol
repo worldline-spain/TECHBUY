@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-
+contract TransferHistory {
     
     using SafeMath for uint256;
 
@@ -50,8 +50,10 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
         for (int256 i = 0; i < int(_resultsPerPage); i++) {
             if (i == _transferIndex) {
                 _transfers[uint256(i)] = transfers[0];
+            } else if (i > _transferIndex) {
+                _transfers[uint256(i)] = transfers[uint256(max_ + _transferIndex - i)];
             } else {
-                _transfers[uint256(i)] = transfers[uint256((_transferIndex - i) % max_)];
+                _transfers[uint256(i)] = transfers[uint256(_transferIndex - i)];
             }
         }
         return _transfers;
