@@ -17,7 +17,6 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^6.0.0",
-    "openzeppelin-solidity": "^2.0.0",
     "truffle": "^4.1.14",
     "web3": "^0.20.1"
   }
