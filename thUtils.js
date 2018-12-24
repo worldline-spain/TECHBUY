@@ -5,7 +5,7 @@ var HDWalletProvider = require("truffle-hdwallet-provider");
 var mnemonic =process.env.ALASTRIA_MNEMONIC;
 
 var fs = require('fs');
-var contractJSON = JSON.parse(fs.readFileSync('./build/contracts/TransferHistory.json', 'utf8'));
+var contractJSON = JSON.parse(fs.readFileSync('./build/contracts/MovementHistory.json', 'utf8'));
 const GAS = 999999999999999;
 
 const Web3 = require('web3');
@@ -39,7 +39,7 @@ function doStuff() {
             get(process.argv[3],parseInt(process.argv[4]));
             break;
         case 'add':
-            add(parseInt(process.argv[3]),process.argv[4],parseInt(process.argv[5]),process.argv[6]);
+            add(parseInt(process.argv[3]),process.argv[4],process.argv[5]);
             break;
         default:
             console.log('no command... get|add')
@@ -49,14 +49,14 @@ function doStuff() {
 }
 
 function get(add,page){
-    contractInstance.methods.getPaginatedTransfers(add,page).call(transactionObject).then(
+    contractInstance.methods.getMovements(add,page).call(transactionObject).then(
         (result) => {
             console.log('GET:',result)
         });
 }
 
-function add(amount,description, date, from){
-    contractInstance.methods.addTransfer(amount,description, date, from).send( transactionObject).then(checkTransaction);
+function add(amount,description, to){
+    contractInstance.methods.addMovement(amount,description, to).send( transactionObject).then(checkTransaction);
 }
 
 
