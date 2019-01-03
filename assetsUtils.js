@@ -1,11 +1,12 @@
 require('dotenv').config();
 
 var HDWalletProvider = require("truffle-hdwallet-provider");
+const RLP = require('rlp');
 
 var mnemonic =process.env.ALASTRIA_MNEMONIC;
 
 var fs = require('fs');
-var contractJSON = JSON.parse(fs.readFileSync('./build/contracts/MovementHistory.json', 'utf8'));
+var contractJSON = JSON.parse(fs.readFileSync('./build/contracts/Devices.json', 'utf8'));
 const GAS = 999999999999999;
 
 const Web3 = require('web3');
@@ -36,10 +37,10 @@ const transactionObject = {
 function doStuff() {
     switch(process.argv[2]){
         case 'get':
-            get(parseInt(process.argv[3]));
+            get();
             break;
         case 'add':
-            add(parseInt(process.argv[3]),process.argv[4],process.argv[5]);
+            add();
             break;
         default:
             console.log('no command... get|add')
@@ -48,33 +49,47 @@ function doStuff() {
    hdprovider.engine.stop();
 }
 
-function get(page){
-    
-    contractInstance.methods.getMovements(page).call(transactionObject).then(
+function get(){ 
+    contractInstance.methods.getAssets().call(transactionObject).then(
         (result) => {
             console.log('GET:',result)
         });
 }
 
-function add(amount,description, to){
-    contractInstance.methods.addMovement(amount,description, to).send( transactionObject).then(checkTransaction);
+function add(){
+    //buy(uint256 _assetId, uint256 _schemaId, uint256 _amount, string _dappId)
+    
+    contractInstance.methods.buy(1,1,100,'dummyDapp').send(transactionObject)
+    .then((tx) => {
+        console.log('Transaction sent.',tx.transactionHash);
+        return checkTransaction(tx.transactionHash);
+    },(err)=> console.log(err));
 }
 
-
-
-function checkTransaction(result) {
-    setTimeout( function (){
-        web3.eth.getTransactionReceipt(result,
-            function(status){
-                if( GAS== status.gasUsed){
-                    //transaction error
-                    console.log('KO');
-                } else {
-                    console.log('OK');
+function checkTransaction(tx) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            web3.eth.getTransactionReceipt(tx,
+                function (err, status) {
+                    if (err) {
+                        console.log('KO');
+                        reject(err);
+                    } else if (!status) {
+                        console.log('Checking transaction ...');
+                        checkTransaction(tx);
+                    }
+                    else if (GAS == status.gasUsed) {
+                        //transaction error
+                        console.log('Error','Out of gas.');
+                        resolve();
+                    } else {
+                        console.log('Transaction mined.');
+                        resolve();
+                    }
                 }
-            }
-        );
-    },4000);   
+            );
+        }, 1000);
+    });
 }
 
 

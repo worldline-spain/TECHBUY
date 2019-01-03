@@ -11,7 +11,7 @@
     "console": "truffle console",
     "wclean": "rd /s /q build",
     "development": "truffle migrate",
-    "alastria": "truffle migrate --network alastria"
+    "alastria": "truffle migrate --reset --network alastria"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +19,8 @@
     "dotenv": "^6.0.0",
     "truffle": "^4.1.14",
     "truffle-hdwallet-provider": "0.0.6",
+    "rlp": "^2.1.0",
+    "solidity-rlp": "^1.1.0",
     "web3": "^1.0.0-beta.36"
   }
 }

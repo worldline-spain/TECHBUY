@@ -34,11 +34,11 @@ contract MovementHistory {
     }
 
 
-    function getMovements(address _addr, int256 _page) public view returns (Movement[] memory) {
+    function getMovements(int256 _page) public view returns (Movement[] memory) {
         require(_page > 0 && _page <= MAX_PAGE_NUMBER, "Invalid page.");
 
         uint256 _reqIndexOffset = uint256(PAGE_SIZE * (_page - 1));
-        Movement[] memory transfers = transfersMap_[_addr];
+        Movement[] memory transfers = transfersMap_[msg.sender];
         if (transfers.length <= _reqIndexOffset) {
             return;
         }
@@ -46,7 +46,7 @@ contract MovementHistory {
         Movement[] memory _transfersPage = new Movement[](uint256(PAGE_SIZE));
 
         for (int256 i = 0; i < int(PAGE_SIZE); i++) {
-            int256 _transferIndex = currentIndexMap_[_addr] - int256(_reqIndexOffset) - i;
+            int256 _transferIndex = currentIndexMap_[msg.sender] - int256(_reqIndexOffset) - i;
             if (_transferIndex < 0) {
                 if (transfers.length < uint256(MAX) ) {
                     return _transfersPage;
