@@ -50,7 +50,10 @@ function doStuff() {
 }
 
 function get(){ 
-    contractInstance.methods.isAllowed(web3.utils.keccak256('este es el hash')).call(transactionObject).then(
+    
+    contractInstance.methods
+    .isAllowed(web3.utils.keccak256('este es el hash'))
+    .call(transactionObject).then(
         (result) => {
             console.log('GET:',result)
         });
@@ -58,12 +61,9 @@ function get(){
 
 function add(){
     //handshake(bytes32 _deviceHash, uint256 _assetId, uint256 _schemaId, uint256 _lifeTime, string _dappId)
-
-    const d = new Date();
-    let n = d.getMilliseconds();
-    n %= 1000;
-    n += 6000;
     
+    let n =  Date.now();
+    n += 60*60*24; //one day 
     contractInstance.methods.handshake(web3.utils.keccak256('este es el hash'),1,1,n,"dummy dapp").send(transactionObject)
     .then((tx) => {
         console.log('Transaction sent.',tx.transactionHash);

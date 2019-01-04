@@ -60,17 +60,17 @@ function get(){
 function add(){
     // [<expirationDate>,<schemaId>,<amount>,<assetLifeTime>,[ [<percent>,<address>,<description>],[<percent>,<address>,<description>]]]
     const pathValues = [];
-    const d = new Date();
-    let n = d.getMilliseconds();
-    n %= 1000;
-    n += 6000;
+    let n =  Date.now();
+    n += 60*60*24*365; // one year
     pathValues.push(n);
     pathValues.push(1);
+
     pathValues.push(100);
-    pathValues.push(600);
+    pathValues.push(1000*60*60*24*30); // 30 days
     const clearArray = [];
-    clearArray.push([30,'0x6bdb680c6bb2cb1ba8fa3489193ab56c1e999c27','test receptor#1']);
-    clearArray.push([70,'0xed8946f8b6c399e10ca95b8deeba7fdd2c9e358d','test receptor#2']);
+    clearArray.push([20,'0xc3d47824ddbd528fca680bc56ffdf7036b3e60fb','Distributor']);
+    clearArray.push([65,'0xae474b24632289fa7844b351f8d1e045b2461d35','Service']);
+    clearArray.push([15,'0x933892ae13417ca965ceb29b40d52e10e0f21bb7','TAX']);
     pathValues.push(clearArray);
     const encodedData = RLP.encode(pathValues);
     contractInstance.methods.createSchema(1,encodedData).send(transactionObject)

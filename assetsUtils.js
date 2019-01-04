@@ -50,7 +50,7 @@ function doStuff() {
 }
 
 function get(){ 
-    contractInstance.methods.getAssets().call(transactionObject).then(
+    contractInstance.methods.getAssets(1).call(transactionObject).then(
         (result) => {
             console.log('GET:',result)
         });
