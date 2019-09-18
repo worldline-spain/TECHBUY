@@ -1,18 +1,24 @@
 require('dotenv').config();
+const Web3 = require('web3');
+var HDWalletProvider = require("truffle-hdwallet-provider");
 
+var mnemonic = process.env.DEVELOPMENT_MNEMONIC;
 var fs = require('fs');
 var gameJSON = JSON.parse(fs.readFileSync('./build/contracts/Game.json', 'utf8'));
-const GAS = 999999999999999;
+const GAS = 999999;
+
+
+var hdprovider = new HDWalletProvider(mnemonic, process.env.DEVELOPMENT_URL);
 
 const transactionObject = {
-    from: process.env.ALASTRIA_ACCOUNT,
+    from: hdprovider.getAddress(0),
     gas: GAS,
     gasPrice: 0
-  };
+};
 
-const Web3 = require('web3');
 
-const web3 = new Web3(new Web3.providers.HttpProvider(process.env.ALASTRIA_URL, 0, process.env.ALASTRIA_USER, process.env.ALASTRIA_PASSWORD));
+
+const web3 = new Web3(hdprovider);
 
 const contract = web3.eth.contract(gameJSON.abi);
 const contractInstance = contract.at(gameJSON.networks[process.env.ALASTRIA_NETWORKID].address);
@@ -49,15 +55,14 @@ function doStuff() {
     default:
         console.log('no command... pause|resume|clear|codes|players|pointBank|auction|code name value')
    }
-
 }
 
 function pointBank(){
-    contractInstance.pointBank.call( transactionObject, (err,result) => console.log('POINTBANK:',result.toString()));
+    contractInstance.pointBank.call( transactionObject, (err,result) => { console.log('POINTBANK:',result.toString()); process.exit(0); });
 }
 
 function auction(){
-    contractInstance.auction.call( transactionObject, (err,result) => console.log('AUCTION:',result.toString()));
+    contractInstance.auction.call( transactionObject, (err,result) => { console.log('AUCTION:',result.toString());  process.exit(0); } );
 }
 
 
@@ -74,11 +79,11 @@ function addCode(codeName,codeValue){
 }
 
 function getCodes(){
-    contractInstance.getCodes.call(transactionObject, (err,result) => console.log(result.toString()));
+    contractInstance.getCodes.call(transactionObject, (err,result) => {console.log(result.toString()); process.exit(0);});
 }
 
 function getPlayers(){
-    contractInstance.getPlayers.call(transactionObject, (err,result) => console.log(result.toString()));
+    contractInstance.getPlayers.call(transactionObject, (err,result) =>{ console.log(result.toString()); process.exit(0); });
 }
 
 
@@ -94,14 +99,17 @@ function checkTransaction(error, result) {
                 if( GAS== status.gasUsed){
                     //transaction error
                     console.log('KO');
+                    process.exit(0);
                 } else {
                     console.log('OK');
+                    process.exit(0);
                 }
             }
         );
-    },15000);
+    },10000);
    } else {
     console.log(error);
+    process.exit(0);
    }
 }
 
